@@ -1,0 +1,10 @@
+{
+  "backend": {
+    "cwd": "backend",
+    "command": "npm run api dev"
+  },
+  "frontend": {
+    "cwd": "frontend",
+    "command": "npm run web dev"
+  }
+}

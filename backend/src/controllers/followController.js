@@ -1,0 +1,105 @@
+import Follow from "../models/Follow.js";
+import User from "../models/User.js";
+
+function parsePagination(query) {
+  const page = Math.max(1, Number(query.page) || 1);
+  const limit = Math.min(50, Math.max(1, Number(query.limit) || 20));
+  return { page, limit, skip: (page - 1) * limit };
+}
+
+function handleFollowError(err, res) {
+  if (err?.name === "ValidationError") {
+    return res.status(400).json({ message: err.message, details: err.errors });
+  }
+  if (err?.code === 11000) {
+    return res.status(409).json({ message: "Already following" });
+  }
+  console.error(err);
+  return res.status(500).json({ message: "Internal Server Error" });
+}
+
+export async function toggleFollow(req, res) {
+  try {
+    const targetId = req.params.id;
+    const userId = req.userId;
+
+    if (String(targetId) === String(userId)) {
+      return res.status(400).json({ message: "Cannot follow yourself" });
+    }
+
+    const target = await User.findById(targetId).select("_id");
+    if (!target) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const existing = await Follow.findOne({
+      followerId: userId,
+      followingId: targetId,
+    });
+
+    let following = false;
+
+    if (existing) {
+      await existing.deleteOne();
+      following = false;
+    } else {
+      await Follow.create({ followerId: userId, followingId: targetId });
+      following = true;
+    }
+
+    const [followersCount, followingCount] = await Promise.all([
+      Follow.countDocuments({ followingId: targetId }),
+      Follow.countDocuments({ followerId: targetId }),
+    ]);
+
+    return res.status(200).json({
+      following,
+      followersCount,
+      followingCount,
+    });
+  } catch (err) {
+    return handleFollowError(err, res);
+  }
+}
+
+export async function listFollowers(req, res) {
+  try {
+    const userId = req.params.id;
+    const { page, limit, skip } = parsePagination(req.query);
+
+    const [items, total] = await Promise.all([
+      Follow.find({ followingId: userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("followerId", "username avatar name"),
+      Follow.countDocuments({ followingId: userId }),
+    ]);
+
+    const mapped = items.map((item) => item.followerId);
+    return res.status(200).json({ items: mapped, page, limit, total });
+  } catch (err) {
+    return handleFollowError(err, res);
+  }
+}
+
+export async function listFollowing(req, res) {
+  try {
+    const userId = req.params.id;
+    const { page, limit, skip } = parsePagination(req.query);
+
+    const [items, total] = await Promise.all([
+      Follow.find({ followerId: userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("followingId", "username avatar name"),
+      Follow.countDocuments({ followerId: userId }),
+    ]);
+
+    const mapped = items.map((item) => item.followingId);
+    return res.status(200).json({ items: mapped, page, limit, total });
+  } catch (err) {
+    return handleFollowError(err, res);
+  }
+}
