@@ -40,10 +40,19 @@ const userSchema = new Schema(
       type: String,
       trim: true,
     },
+
+    resetPasswordTokenHash: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpiresAt: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 userSchema.pre("save", async function () {

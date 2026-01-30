@@ -1,29 +1,33 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import { useAuth } from "../auth/AuthContext.jsx";
 
 export default function Register() {
+  const logoImage = "/images/Logo.svg";
+
   const navigate = useNavigate();
   const { register } = useAuth();
+
   const [form, setForm] = useState({
     email: "",
     username: "",
     password: "",
     name: "",
   });
+
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  function updateField(event) {
-    const { name, value } = event.target;
+  function updateField(e) {
+    const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function handleSubmit(e) {
+    e.preventDefault();
     setError(null);
     setLoading(true);
+
     try {
       await register({
         email: form.email,
@@ -31,97 +35,141 @@ export default function Register() {
         password: form.password,
         name: form.name || undefined,
       });
-      navigate("/", { replace: true });
+
+      // После регистрации отправляем на страницу логина.
+      navigate("/login", { replace: true });
     } catch (err) {
       if (err.status === 400) {
-        setError("РџСЂРѕРІРµСЂСЊС‚Рµ Р·Р°РїРѕР»РЅРµРЅРёРµ РїРѕР»РµР№ (email, username, РїР°СЂРѕР»СЊ).");
+        setError("Проверьте заполнение полей (email, username, пароль).");
       } else if (err.status === 409) {
-        setError("Email РёР»Рё username СѓР¶Рµ Р·Р°РЅСЏС‚С‹.");
+        setError("Email или username уже заняты.");
       } else {
-        setError(err.message || "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ.");
+        setError(err.message || "Не удалось зарегистрироваться.");
       }
     } finally {
       setLoading(false);
     }
   }
 
+  const inputClass = [
+    "w-[268px] h-[38px] rounded-[3px]",
+    "border border-[#DBDBDB] bg-[#FAFAFA] px-3",
+    "text-[12px] text-black placeholder:text-[#737373]",
+    "focus:border-[#A8A8A8] focus:bg-white focus:outline-none",
+  ].join(" ");
+
+  const buttonClass = [
+    "w-[268px] h-[38px] rounded-[8px]",
+    "bg-[#0095F6] text-[14px] font-semibold text-white",
+    "transition hover:bg-[#1877F2] active:scale-[0.99]",
+    "disabled:cursor-not-allowed disabled:opacity-60",
+  ].join(" ");
+
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
-      <div className="mx-auto flex max-w-lg flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-semibold">Р РµРіРёСЃС‚СЂР°С†РёСЏ</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            РЎРѕР·РґР°Р№С‚Рµ Р°РєРєР°СѓРЅС‚ Рё РЅР°С‡РЅРёС‚Рµ РґРµР»РёС‚СЊСЃСЏ РїРѕСЃС‚Р°РјРё.
+    <div className="flex min-h-screen items-center justify-center bg-white px-4">
+      <div className="flex flex-col items-center">
+        <div className="w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white px-10 py-8">
+          <div className="mb-3 flex justify-center">
+            <img
+              src={logoImage}
+              alt="Logo"
+              className="h-16 w-auto object-contain"
+            />
+          </div>
+
+          <p className="mb-4 text-center text-[14px] font-semibold text-[#737373]">
+            Sign up to see photos and videos <br /> from your friends.
           </p>
-        </div>
-        <form
-          className="grid gap-4 rounded-2xl bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
-          noValidate
-          onSubmit={handleSubmit}
-        >
-          <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            Email
-            <input
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={updateField}
-              placeholder="user@example.com"
-              className="rounded-xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-slate-400"
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            Username
-            <input
-              name="username"
-              type="text"
-              value={form.username}
-              onChange={updateField}
-              placeholder="username"
-              className="rounded-xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-slate-400"
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            РРјСЏ
-            <input
-              name="name"
-              type="text"
-              value={form.name}
-              onChange={updateField}
-              placeholder="Р’Р°С€Рµ РёРјСЏ"
-              className="rounded-xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-slate-400"
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            РџР°СЂРѕР»СЊ
-            <input
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={updateField}
-              className="rounded-xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-slate-400"
-            />
-          </label>
-          {error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {error}
+
+          <form onSubmit={handleSubmit} className="flex flex-col items-center">
+            <div className="flex flex-col gap-2">
+              <input
+                name="email"
+                type="email"
+                placeholder="Email"
+                value={form.email}
+                onChange={updateField}
+                className={inputClass}
+              />
+
+              <input
+                name="name"
+                type="text"
+                placeholder="Full Name"
+                value={form.name}
+                onChange={updateField}
+                className={inputClass}
+              />
+
+              <input
+                name="username"
+                type="text"
+                placeholder="Username"
+                value={form.username}
+                onChange={updateField}
+                className={inputClass}
+              />
+
+              <input
+                name="password"
+                type="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={updateField}
+                className={inputClass}
+              />
             </div>
-          ) : null}
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-xl bg-slate-950 px-4 py-3 text-base font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+
+            <p className="mt-3 w-[268px] text-center text-[12px] leading-4 text-[#737373]">
+              People who use our service may have uploaded your contact
+              information to Instagram.
+              <span className="cursor-pointer font-semibold text-[#00376B] hover:underline">
+                Learn More
+              </span>
+              <br />
+              <br />
+              By signing up, you agree to our{" "}
+              <span className="cursor-pointer font-semibold text-[#00376B] hover:underline">
+                Terms
+              </span>
+              ,{" "}
+              <span className="cursor-pointer font-semibold text-[#00376B] hover:underline">
+                Privacy Policy
+              </span>{" "}
+              and{" "}
+              <span className="cursor-pointer font-semibold text-[#00376B] hover:underline">
+                Cookies Policy
+              </span>
+              .
+            </p>
+
+            {error && (
+              <div className="mt-3 w-[268px] text-center text-[12px] text-red-500">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`mt-4 ${buttonClass}`}
+            >
+              {loading ? "Signing up..." : "Sign up"}
+            </button>
+          </form>
+        </div>
+
+        <div className="mt-4 w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white py-5 text-center text-[14px]">
+          Have an account?{" "}
+          <Link
+            to="/login"
+            className="font-semibold text-[#0095F6] hover:text-[#1877F2]"
           >
-            {loading ? "Р РµРіРёСЃС‚СЂРёСЂСѓРµРј..." : "Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ"}
-          </button>
-        </form>
-        <p className="text-sm text-slate-600">
-          РЈР¶Рµ РµСЃС‚СЊ Р°РєРєР°СѓРЅС‚?{" "}
-          <Link className="font-semibold text-slate-900" to="/login">
-            Р’РѕР№С‚Рё
+            Log in
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );
 }
+

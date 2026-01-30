@@ -1,5 +1,6 @@
 import Comment from "../models/Comment.js";
 import Post from "../models/Post.js";
+import Notification from "../models/Notification.js";
 
 function parsePagination(query) {
   const page = Math.max(1, Number(query.page) || 1);
@@ -25,13 +26,22 @@ export async function createComment(req, res) {
       return res.status(400).json({ message: "Text is required" });
     }
 
-    const post = await Post.findById(postId).select("_id");
+    const post = await Post.findById(postId).select("_id authorId");
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
 
     const comment = await Comment.create({ postId, userId, text });
     await comment.populate("userId", "username avatar name");
+
+    if (String(post.authorId) !== String(userId)) {
+      await Notification.create({
+        userId: post.authorId,
+        actorId: userId,
+        type: "comment",
+        entityId: comment._id,
+      });
+    }
 
     return res.status(201).json({ comment });
   } catch (err) {

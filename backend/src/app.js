@@ -3,6 +3,9 @@ import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import usersRoutes from "./routes/usersRoutes.js";
 import postsRoutes from "./routes/postsRoutes.js";
+import searchRoutes from "./routes/searchRoutes.js";
+import exploreRoutes from "./routes/exploreRoutes.js";
+import notificationsRoutes from "./routes/notificationsRoutes.js";
 
 const app = express();
 
@@ -20,6 +23,9 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/posts", postsRoutes);
+app.use("/api/search", searchRoutes);
+app.use("/api/explore", exploreRoutes);
+app.use("/api/notifications", notificationsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });

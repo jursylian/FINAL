@@ -1,5 +1,7 @@
 import Post from "../models/Post.js";
 import Like from "../models/Like.js";
+import Comment from "../models/Comment.js";
+import User from "../models/User.js";
 
 function handlePostError(err, res) {
   if (err?.name === "ValidationError") {
@@ -42,13 +44,58 @@ export async function createPost(req, res) {
 export async function listFeed(req, res) {
   try {
     const { page, limit, skip } = parsePagination(req.query);
+    const itcareer = await User.findOne({ username: "itcareerhub" })
+      .select("_id")
+      .lean();
+    const excludeMatch = itcareer?._id
+      ? { authorId: { $ne: itcareer._id } }
+      : {};
     const [items, total] = await Promise.all([
-      Post.find({})
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate("authorId", "username avatar"),
-      Post.countDocuments(),
+      Post.aggregate([
+        ...(excludeMatch.authorId ? [{ $match: excludeMatch }] : []),
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: "users",
+            localField: "authorId",
+            foreignField: "_id",
+            as: "authorId",
+          },
+        },
+        { $unwind: "$authorId" },
+        {
+          $lookup: {
+            from: "likes",
+            localField: "_id",
+            foreignField: "postId",
+            as: "likes",
+          },
+        },
+        {
+          $lookup: {
+            from: "comments",
+            localField: "_id",
+            foreignField: "postId",
+            as: "comments",
+          },
+        },
+        {
+          $addFields: {
+            likesCount: { $size: "$likes" },
+            commentsCount: { $size: "$comments" },
+          },
+        },
+        {
+          $project: {
+            likes: 0,
+            comments: 0,
+            "authorId.password": 0,
+          },
+        },
+      ]),
+      Post.countDocuments(excludeMatch),
     ]);
 
     return res.status(200).json({ items, page, limit, total });

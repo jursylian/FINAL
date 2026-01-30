@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import User from "../models/User.js";
 
 const buildToken = (userId) => {
@@ -15,6 +16,8 @@ const buildToken = (userId) => {
 const toPublicUser = (userDoc) => {
   const obj = userDoc.toObject();
   delete obj.password;
+  delete obj.resetPasswordTokenHash;
+  delete obj.resetPasswordExpiresAt;
   return obj;
 };
 
@@ -45,6 +48,13 @@ const handleAuthError = (err, res) => {
   });
 };
 
+// -------- reset helpers --------
+const sha256 = (value) =>
+  crypto.createHash("sha256").update(value).digest("hex");
+
+const generateResetToken = () => crypto.randomBytes(32).toString("hex");
+
+// -------- controllers --------
 const register = async (req, res) => {
   try {
     const { email, username, password, name } = req.body;
@@ -117,7 +127,101 @@ const me = async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
-  return res.status(200).json({ user });
+  return res.status(200).json({ user: toPublicUser(user) });
 };
 
-export { register, login, me };
+// POST /auth/forgot-password
+// body: { identifier: "emailOrUsername" }
+const forgotPassword = async (req, res) => {
+  try {
+    const { identifier } = req.body;
+
+    // Always same response (do not reveal whether user exists)
+    const okResponse = () =>
+      res
+        .status(200)
+        .json({ message: "If the account exists, we sent a reset link." });
+
+    if (!identifier || typeof identifier !== "string") {
+      return okResponse();
+    }
+
+    const value = identifier.trim();
+    if (!value) return okResponse();
+
+    const isEmail = value.includes("@");
+    const query = isEmail
+      ? { email: value.toLowerCase() }
+      : { username: value };
+
+    const user = await User.findOne(query).select(
+      "+resetPasswordTokenHash +resetPasswordExpiresAt",
+    );
+    if (!user) return okResponse();
+
+    const rawToken = generateResetToken();
+    const tokenHash = sha256(rawToken);
+
+    user.resetPasswordTokenHash = tokenHash;
+    user.resetPasswordExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    await user.save();
+
+    const frontend = process.env.FRONTEND_URL || "http://localhost:5173";
+    const link = `${frontend}/reset-password?token=${rawToken}`;
+
+    // DEV: print link to server console (replace with real email sending later)
+    console.log("RESET_LINK:", link);
+
+    return okResponse();
+  } catch (err) {
+    // Even on error, return generic success message
+    console.error("FORGOT_PASSWORD_ERROR:", err);
+    return res
+      .status(200)
+      .json({ message: "If the account exists, we sent a reset link." });
+  }
+};
+
+// POST /auth/reset-password
+// body: { token: "...", password: "NewPassword123!" }
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || typeof token !== "string") {
+      return res.status(400).json({ message: "Token is required" });
+    }
+
+    if (!password || typeof password !== "string" || password.length < 8) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters" });
+    }
+
+    const tokenHash = sha256(token);
+
+    const user = await User.findOne({
+      resetPasswordTokenHash: tokenHash,
+      resetPasswordExpiresAt: { $gt: new Date() },
+    }).select("+password +resetPasswordTokenHash +resetPasswordExpiresAt");
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token" });
+    }
+
+    user.password = password; // will be hashed by pre('save')
+    user.resetPasswordTokenHash = undefined;
+    user.resetPasswordExpiresAt = undefined;
+
+    await user.save();
+
+    // Instagram-like behavior: ask user to login with new password
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (err) {
+    return handleAuthError(err, res);
+  }
+};
+
+export { register, login, me, forgotPassword, resetPassword };

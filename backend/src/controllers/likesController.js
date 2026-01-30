@@ -1,5 +1,6 @@
 import Like from "../models/Like.js";
 import Post from "../models/Post.js";
+import Notification from "../models/Notification.js";
 
 function handleLikeError(err, res) {
   if (err?.name === "ValidationError") {
@@ -17,7 +18,7 @@ export async function toggleLike(req, res) {
     const postId = req.params.id;
     const userId = req.userId;
 
-    const post = await Post.findById(postId).select("_id");
+    const post = await Post.findById(postId).select("_id authorId");
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
@@ -31,6 +32,15 @@ export async function toggleLike(req, res) {
     } else {
       await Like.create({ userId, postId });
       liked = true;
+    }
+
+    if (liked && String(post.authorId) !== String(userId)) {
+      await Notification.create({
+        userId: post.authorId,
+        actorId: userId,
+        type: "like",
+        entityId: postId,
+      });
     }
 
     const likesCount = await Like.countDocuments({ postId });

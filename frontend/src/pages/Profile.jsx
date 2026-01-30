@@ -211,24 +211,25 @@ export default function Profile() {
               Пока нет постов.
             </div>
           ) : null}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            className="grid gap-4"
+            style={{
+              gridTemplateColumns: "repeat(3, 307.6600036621094px)",
+              gridAutoRows: "307.6600036621094px",
+            }}
+          >
             {posts.map((post) => (
               <Link
                 key={post._id}
                 to={`/post/${post._id}`}
-                className="group overflow-hidden rounded-2xl bg-white shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
+                className="group overflow-hidden bg-white shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
               >
                 {post.image ? (
                   <img
                     src={post.image}
                     alt={post.caption || "post"}
-                    className="h-60 w-full object-cover transition group-hover:scale-105"
+                    className="h-full w-full object-cover transition group-hover:scale-105"
                   />
-                ) : null}
-                {post.caption ? (
-                  <div className="p-4 text-sm text-slate-700">
-                    {post.caption}
-                  </div>
                 ) : null}
               </Link>
             ))}

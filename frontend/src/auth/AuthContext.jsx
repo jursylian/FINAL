@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-
 import { request } from "../lib/apiClient.js";
 
 const AuthContext = createContext(null);
@@ -12,11 +11,13 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let mounted = true;
+
     async function loadMe() {
       if (!token) {
         setLoading(false);
         return;
       }
+
       try {
         const data = await request("/auth/me");
         if (mounted) {
@@ -31,11 +32,10 @@ export function AuthProvider({ children }) {
           setToken(null);
         }
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     }
+
     loadMe();
     return () => {
       mounted = false;
@@ -43,25 +43,43 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   async function login({ email, username, password }) {
-    const data = await request("/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, username, password }),
-    });
-    localStorage.setItem("token", data.token);
-    setToken(data.token);
-    setUser(data.user);
-    return data;
+    setError(null);
+    try {
+      const data = await request("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, username, password }),
+      });
+
+      localStorage.setItem("token", data.token);
+      setToken(data.token);
+      setUser(data.user);
+
+      return data;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
   }
 
   async function register({ email, username, password, name }) {
-    const data = await request("/auth/register", {
-      method: "POST",
-      body: JSON.stringify({ email, username, password, name }),
-    });
-    localStorage.setItem("token", data.token);
-    setToken(data.token);
-    setUser(data.user);
-    return data;
+    setError(null);
+    try {
+      const data = await request("/auth/register", {
+        method: "POST",
+
+        body: JSON.stringify({
+          email,
+          username,
+          password,
+          fullName: name || undefined,
+        }),
+      });
+
+      return data;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
   }
 
   function updateUser(nextUser) {
@@ -72,6 +90,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
+    setError(null);
   }
 
   const value = {
@@ -90,8 +109,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }

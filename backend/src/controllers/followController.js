@@ -1,5 +1,6 @@
 import Follow from "../models/Follow.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 
 function parsePagination(query) {
   const page = Math.max(1, Number(query.page) || 1);
@@ -45,6 +46,15 @@ export async function toggleFollow(req, res) {
     } else {
       await Follow.create({ followerId: userId, followingId: targetId });
       following = true;
+    }
+
+    if (following) {
+      await Notification.create({
+        userId: targetId,
+        actorId: userId,
+        type: "follow",
+        entityId: targetId,
+      });
     }
 
     const [followersCount, followingCount] = await Promise.all([
