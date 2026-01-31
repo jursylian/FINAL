@@ -5,6 +5,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import FeedPost from "../components/FeedPost.jsx";
 import PostModal from "../components/PostModal.jsx";
 import NotificationsList from "../components/NotificationsList.jsx";
+import PostCreateModal from "../components/PostCreateModal.jsx";
 
 const SIDEBAR_W = 245;
 const PANEL_W = 397;
@@ -20,6 +21,7 @@ export default function Feed() {
   const [loading, setLoading] = useState(true);
   const [likeLoadingIds, setLikeLoadingIds] = useState(new Set());
   const [modalPostId, setModalPostId] = useState(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   // null | "search" | "notifications"
   const [panel, setPanel] = useState(null);
@@ -126,6 +128,7 @@ export default function Feed() {
           onHome={() => setPanel(null)}
           onToggleSearch={() => togglePanel("search")}
           onToggleNotifications={() => togglePanel("notifications")}
+          onCreate={() => setCreateOpen(true)}
         />
 
         <LeftPanelFixed open={panelOpen} title={panel}>
@@ -158,7 +161,11 @@ export default function Feed() {
             </div>
 
             <div className="mt-24 flex flex-col items-center gap-3">
-              <img src="/images/Done.svg" alt="Done" className="h-23 w-23" />
+              <img
+                src="/images/Done.svg"
+                alt="Done"
+                className="h-23 w-23 cursor-pointer"
+              />
               <div className="text-center">
                 <div className="text-[14px] font-semibold text-[#262626]">
                   You have seen all the updates
@@ -178,11 +185,14 @@ export default function Feed() {
         onExplore={() => navigate("/explore")}
         onMessages={() => {}}
         onNotifications={() => togglePanel("notifications")}
-        onCreate={() => navigate("/posts/new")}
+        onCreate={() => setCreateOpen(true)}
       />
 
       {modalPostId ? (
         <PostModal postId={modalPostId} onClose={handleCloseModal} />
+      ) : null}
+      {createOpen ? (
+        <PostCreateModal onClose={() => setCreateOpen(false)} />
       ) : null}
     </div>
   );
@@ -199,8 +209,9 @@ function Sidebar({
   onHome,
   onToggleSearch,
   onToggleNotifications,
+  onCreate,
 }) {
-  const iconClass = "h-6 w-6 shrink-0";
+  const iconClass = "h-6 w-6 shrink-0 cursor-pointer";
   const rowClass = "flex items-center gap-3";
   const labelClass = "text-[14px] text-[#262626]";
 
@@ -254,22 +265,27 @@ function Sidebar({
             <span className={labelClass}>Notifications</span>
           </button>
 
-          <Link to="/posts/new" className={rowClass}>
+          <button onClick={onCreate} className={rowClass}>
             <img src="/images/Add.svg" className={iconClass} />
             <span className={labelClass}>Create</span>
-          </Link>
+          </button>
 
           {user?._id && (
             <Link to={`/profile/${user._id}`} className={rowClass}>
               <div className="h-6 w-6 overflow-hidden rounded-full bg-[#DBDBDB]">
                 <img
                   src="/images/ICH.svg"
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover cursor-pointer"
                 />
               </div>
               <span className={labelClass}>Profile</span>
             </Link>
           )}
+
+          <button onClick={onLogout} className={rowClass}>
+            <img src="/images/Logout.svg" className={iconClass} />
+            <span className={labelClass}>Log out</span>
+          </button>
         </nav>
 
         <div className="mt-auto" />

@@ -36,7 +36,7 @@ export default function PostModal({ postId, onClose }) {
           }
         }
       } catch (err) {
-        if (mounted) setError(err.message || "Не удалось загрузить пост.");
+        if (mounted) setError(err.message || "Unable to load the post.");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -51,9 +51,7 @@ export default function PostModal({ postId, onClose }) {
         }
       } catch (err) {
         if (mounted) {
-          setCommentError(
-            err.message || "Не удалось загрузить комментарии.",
-          );
+          setCommentError(err.message || "Unable to load comments.");
         }
       }
     }
@@ -76,7 +74,7 @@ export default function PostModal({ postId, onClose }) {
         liked: Boolean(data.liked),
       }));
     } catch (err) {
-      setError(err.message || "Не удалось поставить лайк.");
+      setError(err.message || "Unable to like the post.");
     } finally {
       setLikeLoading(false);
     }
@@ -86,7 +84,7 @@ export default function PostModal({ postId, onClose }) {
     event.preventDefault();
     const text = commentText.trim();
     if (!text) {
-      setCommentError("Введите текст комментария.");
+      setCommentError("Please enter a comment.");
       return;
     }
     setCommentError(null);
@@ -102,7 +100,7 @@ export default function PostModal({ postId, onClose }) {
         setCommentText("");
       }
     } catch (err) {
-      setCommentError(err.message || "Не удалось добавить комментарий.");
+      setCommentError(err.message || "Unable to add a comment.");
     } finally {
       setSending(false);
     }
@@ -131,7 +129,7 @@ export default function PostModal({ postId, onClose }) {
         <div className="flex-1 bg-black">
           {loading ? (
             <div className="flex h-full items-center justify-center text-sm text-white/70">
-              Загрузка...
+              Loading...
             </div>
           ) : post?.image ? (
             <img
@@ -141,7 +139,7 @@ export default function PostModal({ postId, onClose }) {
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-white/70">
-              Нет изображения
+              No image
             </div>
           )}
         </div>
@@ -192,7 +190,7 @@ export default function PostModal({ postId, onClose }) {
             ))}
             {commentsTotal > comments.length ? (
               <div className="text-xs text-[#8E8E8E]">
-                Показано {comments.length} из {commentsTotal}
+                Showing {comments.length} of {commentsTotal}
               </div>
             ) : null}
           </div>
@@ -206,14 +204,20 @@ export default function PostModal({ postId, onClose }) {
                 className="disabled:opacity-60"
               >
                 <img
-                  src={stats.liked ? "/images/Like_active.svg" : "/images/Like.svg"}
+                  src={
+                    stats.liked ? "/images/Like_active.svg" : "/images/Like.svg"
+                  }
                   alt="Like"
-                  className="h-6 w-6"
+                  className="h-6 w-6 cursor-pointer"
                 />
               </button>
-              <img src="/images/Comment.svg" alt="Comment" className="h-6 w-6" />
+              <img
+                src="/images/Comment.svg"
+                alt="Comment"
+                className="h-6 w-6 cursor-pointer"
+              />
               <div className="ml-auto text-xs text-[#8E8E8E]">
-                Нравится: <span className="font-semibold">{stats.likes}</span>
+                Likes: <span className="font-semibold">{stats.likes}</span>
               </div>
             </div>
           </div>
@@ -227,7 +231,7 @@ export default function PostModal({ postId, onClose }) {
               <input
                 value={commentText}
                 onChange={(event) => setCommentText(event.target.value)}
-                placeholder="Добавьте комментарий..."
+                placeholder="Add a comment..."
                 className="h-10 flex-1 rounded-full bg-[#FAFAFA] px-4 text-sm text-[#262626] placeholder:text-[#8E8E8E] outline-none"
               />
               <button
@@ -235,7 +239,7 @@ export default function PostModal({ postId, onClose }) {
                 disabled={sending}
                 className="text-sm font-semibold text-[#0095F6] disabled:opacity-60"
               >
-                Опубликовать
+                Post
               </button>
             </div>
             {error ? (

@@ -34,14 +34,18 @@ export default function FeedPost({
           disabled={likeLoading}
           className="disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <img src={likeIcon} alt="Like" className="h-6 w-6" />
+          <img src={likeIcon} alt="Like" className="h-6 w-6 cursor-pointer" />
         </button>
         <button
           type="button"
           onClick={() => onOpenComments?.(post._id)}
           className="inline-flex"
         >
-          <img src={commentIcon} alt="Comment" className="h-6 w-6" />
+          <img
+            src={commentIcon}
+            alt="Comment"
+            className="h-6 w-6 cursor-pointer"
+          />
         </button>
       </div>
 

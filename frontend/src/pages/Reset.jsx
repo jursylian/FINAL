@@ -61,7 +61,7 @@ export default function Reset() {
         <div className="w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white px-10 py-8">
           {/* Icon */}
           <div className="mb-4 flex justify-center">
-            <img src={lockIcon} alt="Lock" />
+            <img src={lockIcon} alt="Lock" className="cursor-pointer" />
           </div>
 
           <h1 className="text-center text-[14px] font-semibold text-[#262626]">

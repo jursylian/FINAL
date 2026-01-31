@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
@@ -34,7 +34,7 @@ export default function PostDetail() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || "Не удалось загрузить пост.");
+          setError(err.message || "Unable to load the post.");
         }
       } finally {
         if (mounted) {
@@ -54,7 +54,7 @@ export default function PostDetail() {
         }
       } catch (err) {
         if (mounted) {
-          setCommentError(err.message || "Не удалось загрузить комментарии.");
+          setCommentError(err.message || "Unable to load comments.");
         }
       } finally {
         if (mounted) {
@@ -83,7 +83,7 @@ export default function PostDetail() {
         liked: Boolean(data.liked),
       }));
     } catch (err) {
-      setError(err.message || "Не удалось поставить лайк.");
+      setError(err.message || "Unable to like the post.");
     } finally {
       setLikeLoading(false);
     }
@@ -93,7 +93,7 @@ export default function PostDetail() {
     event.preventDefault();
     const text = commentText.trim();
     if (!text) {
-      setCommentError("Введите текст комментария.");
+      setCommentError("Please enter a comment.");
       return;
     }
     setCommentError(null);
@@ -108,14 +108,14 @@ export default function PostDetail() {
         setCommentText("");
       }
     } catch (err) {
-      setCommentError(err.message || "Не удалось добавить комментарий.");
+      setCommentError(err.message || "Unable to add a comment.");
     }
   }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
-        <div className="mx-auto max-w-2xl">Загрузка...</div>
+        <div className="mx-auto max-w-2xl">Loading...</div>
       </div>
     );
   }
@@ -138,7 +138,7 @@ export default function PostDetail() {
     <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
         <Link className="text-sm font-semibold text-slate-900" to="/">
-          ← Назад к ленте
+          Back to feed
         </Link>
         <article className="overflow-hidden rounded-2xl bg-white shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
           {post.image ? (
@@ -166,23 +166,23 @@ export default function PostDetail() {
                     : "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50"
                 }`}
               >
-                {stats.liked ? "Лайк" : "Нравится"}
+                {stats.liked ? "Liked" : "Like"}
               </button>
               <div className="text-sm text-slate-600">
-                Лайков: <span className="font-semibold">{stats.likes}</span>
+                Likes: <span className="font-semibold">{stats.likes}</span>
               </div>
             </div>
           </div>
         </article>
 
         <div className="rounded-2xl bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-          <h2 className="text-lg font-semibold">Комментарии</h2>
+          <h2 className="text-lg font-semibold">Comments</h2>
           <form onSubmit={handleAddComment} className="mt-4 grid gap-3">
             <textarea
               value={commentText}
               onChange={(event) => setCommentText(event.target.value)}
               rows={3}
-              placeholder="Написать комментарий..."
+              placeholder="Write a comment..."
               className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
             />
             {commentError ? (
@@ -192,16 +192,14 @@ export default function PostDetail() {
               type="submit"
               className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
             >
-              Отправить
+              Send
             </button>
           </form>
 
           <div className="mt-6 grid gap-4">
-            {commentsLoading ? <div>Загрузка комментариев...</div> : null}
+            {commentsLoading ? <div>Loading comments...</div> : null}
             {!commentsLoading && comments.length === 0 ? (
-              <div className="text-sm text-slate-600">
-                Пока нет комментариев.
-              </div>
+              <div className="text-sm text-slate-600">No comments yet.</div>
             ) : null}
             {comments.map((comment) => (
               <div key={comment._id} className="flex gap-3">
@@ -225,7 +223,7 @@ export default function PostDetail() {
           </div>
           {commentsTotal > comments.length ? (
             <div className="mt-4 text-xs text-slate-500">
-              Показано {comments.length} из {commentsTotal}
+              Showing {comments.length} of {commentsTotal}
             </div>
           ) : null}
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
@@ -13,13 +13,13 @@ export default function PostCreate() {
   async function handleSubmit(event) {
     event.preventDefault();
     setError(null);
-    setSaving(true);
 
     try {
       if (!file) {
-        setError("Выберите изображение.");
+        setError("Please choose an image.");
         return;
       }
+      setSaving(true);
       const formData = new FormData();
       formData.append("image", file);
       if (caption.trim()) {
@@ -34,11 +34,11 @@ export default function PostCreate() {
       navigate(`/post/${data.post._id}`, { replace: true });
     } catch (err) {
       if (err.status === 400) {
-        setError("Проверьте изображение и подпись.");
+        setError("Check the image and caption.");
       } else if (err.status === 401) {
-        setError("Нужно войти в аккаунт.");
+        setError("Please sign in to create a post.");
       } else {
-        setError(err.message || "Не удалось создать пост.");
+        setError(err.message || "Unable to create a post.");
       }
     } finally {
       setSaving(false);
@@ -49,9 +49,9 @@ export default function PostCreate() {
     <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
       <div className="mx-auto flex max-w-xl flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-semibold">Новый пост</h1>
+          <h1 className="text-2xl font-semibold">New post</h1>
           <p className="mt-2 text-sm text-slate-500">
-            Загрузите изображение и добавьте подпись.
+            Upload an image and add a caption.
           </p>
         </div>
         <form
@@ -59,7 +59,7 @@ export default function PostCreate() {
           className="grid gap-4 rounded-2xl bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
         >
           <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            Изображение
+            Image
             <input
               type="file"
               accept="image/*"
@@ -68,7 +68,7 @@ export default function PostCreate() {
             />
           </label>
           <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            Подпись
+            Caption
             <textarea
               rows={4}
               value={caption}
@@ -86,7 +86,7 @@ export default function PostCreate() {
             disabled={saving}
             className="rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Сохраняем..." : "Опубликовать"}
+            {saving ? "Saving..." : "Publish"}
           </button>
         </form>
       </div>

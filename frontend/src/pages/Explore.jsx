@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { request } from "../lib/apiClient.js";
 import PostModal from "../components/PostModal.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
+import PostCreateModal from "../components/PostCreateModal.jsx";
 
 export default function Explore() {
   const { user, logout } = useAuth();
@@ -12,6 +13,7 @@ export default function Explore() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modalPostId, setModalPostId] = useState(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const tileAreas = useMemo(
     () => ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"],
@@ -60,14 +62,20 @@ export default function Explore() {
 
             <nav className="flex flex-col gap-4 text-[14px] text-[#262626]">
               <Link to="/" className="flex items-center gap-3">
-                <img src="/images/Home.svg" className="h-6 w-6 shrink-0" />
+                <img
+                  src="/images/Home.svg"
+                  className="h-6 w-6 shrink-0 cursor-pointer"
+                />
                 <span>Home</span>
               </Link>
               <button
                 onClick={() => navigate("/", { state: { panel: "search" } })}
                 className="flex items-center gap-3"
               >
-                <img src="/images/Search.svg" className="h-6 w-6 shrink-0" />
+                <img
+                  src="/images/Search.svg"
+                  className="h-6 w-6 shrink-0 cursor-pointer"
+                />
                 <span>Search</span>
               </button>
               <button
@@ -76,12 +84,15 @@ export default function Explore() {
               >
                 <img
                   src="/images/Explore_active.svg"
-                  className="h-6 w-6 shrink-0"
+                  className="h-6 w-6 shrink-0 cursor-pointer"
                 />
                 <span>Explore</span>
               </button>
               <div className="flex items-center gap-3">
-                <img src="/images/Messages.svg" className="h-6 w-6 shrink-0" />
+                <img
+                  src="/images/Messages.svg"
+                  className="h-6 w-6 shrink-0 cursor-pointer"
+                />
                 <span>Messages</span>
               </div>
               <button
@@ -90,13 +101,22 @@ export default function Explore() {
                 }
                 className="flex items-center gap-3"
               >
-                <img src="/images/Like.svg" className="h-6 w-6 shrink-0" />
+                <img
+                  src="/images/Like.svg"
+                  className="h-6 w-6 shrink-0 cursor-pointer"
+                />
                 <span>Notifications</span>
               </button>
-              <Link to="/posts/new" className="flex items-center gap-3">
-                <img src="/images/Add.svg" className="h-6 w-6 shrink-0" />
+              <button
+                onClick={() => setCreateOpen(true)}
+                className="flex items-center gap-3"
+              >
+                <img
+                  src="/images/Add.svg"
+                  className="h-6 w-6 shrink-0 cursor-pointer"
+                />
                 <span>Create</span>
-              </Link>
+              </button>
 
               {user?._id ? (
                 <Link
@@ -106,12 +126,23 @@ export default function Explore() {
                   <div className="h-6 w-6 overflow-hidden rounded-full bg-[#DBDBDB]">
                     <img
                       src="/images/ICH.svg"
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover cursor-pointer"
                     />
                   </div>
                   <span>Profile</span>
                 </Link>
               ) : null}
+
+              <button
+                onClick={logout}
+                className="flex items-center gap-3 text-[14px] text-[#262626]"
+              >
+                <img
+                  src="/images/Logout.svg"
+                  className="h-6 w-6 shrink-0 cursor-pointer"
+                />
+                <span>Log out</span>
+              </button>
             </nav>
 
             <div className="mt-auto" />
@@ -187,7 +218,7 @@ export default function Explore() {
           >
             Notifications
           </button>
-          <button onClick={() => navigate("/posts/new")}>Create</button>
+          <button onClick={() => setCreateOpen(true)}>Create</button>
         </div>
         <div className="pb-3 text-center text-[12px] text-[#737373]">
           © 2024 ICHgram
@@ -196,6 +227,9 @@ export default function Explore() {
 
       {modalPostId ? (
         <PostModal postId={modalPostId} onClose={() => setModalPostId(null)} />
+      ) : null}
+      {createOpen ? (
+        <PostCreateModal onClose={() => setCreateOpen(false)} />
       ) : null}
     </div>
   );
