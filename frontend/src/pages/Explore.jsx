@@ -6,7 +6,9 @@ import PostModal from "../components/PostModal.jsx";
 const TILE_AREAS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
 
 function useIsDesktop() {
-  const [desktop, setDesktop] = useState(() => window.matchMedia("(min-width: 768px)").matches);
+  const [desktop, setDesktop] = useState(() =>
+    window.matchMedia("(min-width: 768px)").matches,
+  );
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
     const handler = (e) => setDesktop(e.matches);

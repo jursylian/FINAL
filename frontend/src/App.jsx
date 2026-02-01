@@ -19,7 +19,6 @@ import Followers from "./pages/Followers.jsx";
 import Following from "./pages/Following.jsx";
 import Explore from "./pages/Explore.jsx";
 import Notifications from "./pages/Notifications.jsx";
-
 export default function App() {
   return (
     <Routes>

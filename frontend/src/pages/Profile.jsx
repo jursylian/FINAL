@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import PostCreateModal from "../components/PostCreateModal.jsx";
 
 export default function Profile() {
   const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user: me } = useAuth();
   const [profile, setProfile] = useState(null);
   const [stats, setStats] = useState({
@@ -21,10 +24,11 @@ export default function Profile() {
   const [postsError, setPostsError] = useState(null);
   const [postsLoading, setPostsLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const isOwner = useMemo(
     () => me && profile && String(me._id) === String(profile._id),
-    [me, profile]
+    [me, profile],
   );
 
   useEffect(() => {
@@ -83,6 +87,14 @@ export default function Profile() {
     };
   }, [id]);
 
+  useEffect(() => {
+    const shouldOpen = Boolean(location.state?.createOpen);
+    if (shouldOpen && isOwner) {
+      setCreateOpen(true);
+      navigate(".", { replace: true, state: null });
+    }
+  }, [isOwner, location.state, navigate]);
+
   async function handleToggleFollow() {
     if (followLoading || isOwner) {
       return;
@@ -138,9 +150,7 @@ export default function Profile() {
   return (
     <div className="px-4 py-8 pb-20 md:pb-8">
       <div className="mx-auto max-w-[935px]">
-        {/* ===== HEADER ===== */}
         <div className="flex flex-col md:flex-row gap-6 md:gap-[100px] border-b border-[#DBDBDB] pb-10">
-          {/* Avatar */}
           <div className="flex shrink-0 items-start justify-center w-full md:w-[290px]">
             <div className="h-[80px] w-[80px] md:h-[150px] md:w-[150px] overflow-hidden rounded-full bg-[#FAFAFA] border border-[#DBDBDB]">
               {profile.avatar ? (
@@ -157,9 +167,7 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Info */}
           <div className="flex flex-1 flex-col items-center gap-5 text-center md:items-start md:text-left">
-            {/* Row 1: username + buttons */}
             <div className="flex items-center gap-3 md:gap-5">
               <h1 className="text-[20px] font-normal text-[#262626]">
                 {profile.username}
@@ -198,7 +206,6 @@ export default function Profile() {
               )}
             </div>
 
-            {/* Row 2: stats */}
             <div className="flex justify-center gap-10 text-[16px] text-[#262626] md:justify-start">
               <div>
                 <span className="font-semibold">{postsCount}</span> posts
@@ -211,7 +218,6 @@ export default function Profile() {
               </Link>
             </div>
 
-            {/* Row 3: name + bio + website */}
             <div className="flex flex-col gap-1">
               {profile.name && (
                 <div className="text-[14px] font-semibold text-[#262626]">
@@ -237,7 +243,6 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* ===== POSTS GRID ===== */}
         <div className="mt-5">
           {postsLoading && (
             <div className="text-[14px] text-[#737373]">Loading posts...</div>
@@ -268,8 +273,8 @@ export default function Profile() {
                 ) : null}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition group-hover:opacity-100">
                   <div className="flex items-center gap-6 text-white font-semibold text-[14px]">
-                    <span>♥ {post.likesCount || 0}</span>
-                    <span>💬 {post.commentsCount || 0}</span>
+                    <span>� {post.likesCount || 0}</span>
+                    <span>?? {post.commentsCount || 0}</span>
                   </div>
                 </div>
               </Link>
@@ -277,6 +282,10 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {createOpen ? (
+        <PostCreateModal onClose={() => setCreateOpen(false)} />
+      ) : null}
     </div>
   );
 }
