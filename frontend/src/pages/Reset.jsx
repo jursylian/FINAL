@@ -108,7 +108,7 @@ export default function Reset() {
           {/* OR */}
           <div className="my-6 flex items-center gap-4">
             <div className="h-px flex-1 bg-[#DBDBDB]" />
-            <span className="text-xs font-semibold text-[#8E8E8E]">OR</span>
+            <span className="text-xs font-semibold text-[#737373]">OR</span>
             <div className="h-px flex-1 bg-[#DBDBDB]" />
           </div>
 
