@@ -4,7 +4,7 @@ import { request } from "../lib/apiClient.js";
 
 export default function Reset() {
   const logoImage = "/images/Logo.svg";
-  const lockIcon = "./images/Lock.svg";
+  const lockIcon = "/images/Lock.svg";
 
   const [identifier, setIdentifier] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ export default function Reset() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Верхняя тонкая полоса как на макете */}
+      {/* Top bar */}
       <div className="border-b border-[#DBDBDB]">
         <div className="mx-auto flex h-[60px] max-w-[935px] items-center px-4">
           <img
@@ -58,7 +58,7 @@ export default function Reset() {
       </div>
 
       <div className="flex min-h-[calc(100vh-60px)] items-center justify-center px-4">
-        <div className="w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white px-10 py-8">
+        <div className="w-full max-w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white px-10 py-8">
           {/* Icon */}
           <div className="mb-4 flex justify-center">
             <img src={lockIcon} alt="Lock" className="cursor-pointer" />

@@ -36,15 +36,14 @@ export default function Register() {
         name: form.name || undefined,
       });
 
-      // После регистрации отправляем на страницу логина.
       navigate("/login", { replace: true });
     } catch (err) {
       if (err.status === 400) {
-        setError("Проверьте заполнение полей (email, username, пароль).");
+        setError("Please fill in all required fields (email, username, password).");
       } else if (err.status === 409) {
-        setError("Email или username уже заняты.");
+        setError("Email or username is already taken.");
       } else {
-        setError(err.message || "Не удалось зарегистрироваться.");
+        setError(err.message || "Unable to sign up.");
       }
     } finally {
       setLoading(false);
@@ -68,7 +67,7 @@ export default function Register() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-4">
       <div className="flex flex-col items-center">
-        <div className="w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white px-10 py-8">
+        <div className="w-full max-w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white px-10 py-8">
           <div className="mb-3 flex justify-center">
             <img
               src={logoImage}
@@ -159,7 +158,7 @@ export default function Register() {
           </form>
         </div>
 
-        <div className="mt-4 w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white py-5 text-center text-[14px]">
+        <div className="mt-4 w-full max-w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white py-5 text-center text-[14px]">
           Have an account?{" "}
           <Link
             to="/login"

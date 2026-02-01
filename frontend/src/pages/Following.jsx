@@ -21,7 +21,7 @@ export default function Following() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || "Не удалось загрузить подписки.");
+          setError(err.message || "Failed to load following.");
         }
       } finally {
         if (mounted) {
@@ -36,22 +36,20 @@ export default function Following() {
   }, [id]);
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
+    <div className="px-4 py-10">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        <Link className="text-sm font-semibold text-slate-900" to={`/profile/${id}`}>
-          Назад к профилю
+        <Link className="text-[14px] font-semibold text-[#00376B]" to={`/profile/${id}`}>
+          ← Back to profile
         </Link>
-        <h1 className="text-2xl font-semibold">Подписки</h1>
+        <h1 className="text-[20px] font-semibold text-[#262626]">Following</h1>
 
-        {loading ? <div>Загрузка...</div> : null}
+        {loading ? <div className="text-[14px] text-[#737373]">Loading...</div> : null}
         {error ? (
-          <div className="rounded-2xl bg-white p-4 text-rose-600">{error}</div>
+          <div className="text-[14px] text-red-500">{error}</div>
         ) : null}
 
         {!loading && !error && items.length === 0 ? (
-          <div className="rounded-2xl bg-white p-4 text-slate-600">
-            Пока нет подписок.
-          </div>
+          <div className="text-[14px] text-[#737373]">Not following anyone yet.</div>
         ) : null}
 
         <div className="grid gap-3">
@@ -59,9 +57,9 @@ export default function Following() {
             <Link
               key={user._id}
               to={`/profile/${user._id}`}
-              className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
+              className="flex items-center gap-4 rounded-lg border border-[#EFEFEF] bg-white p-4"
             >
-              <div className="h-12 w-12 overflow-hidden rounded-full bg-slate-200">
+              <div className="h-12 w-12 overflow-hidden rounded-full bg-[#DBDBDB]">
                 {user.avatar ? (
                   <img
                     src={user.avatar}
@@ -71,10 +69,10 @@ export default function Following() {
                 ) : null}
               </div>
               <div>
-                <div className="font-semibold">
+                <div className="text-[14px] font-semibold text-[#262626]">
                   {user.name || user.username}
                 </div>
-                <div className="text-sm text-slate-500">@{user.username}</div>
+                <div className="text-[12px] text-[#8E8E8E]">@{user.username}</div>
               </div>
             </Link>
           ))}

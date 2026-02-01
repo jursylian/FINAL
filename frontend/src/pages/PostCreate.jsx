@@ -46,7 +46,7 @@ export default function PostCreate() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
+    <div className="min-h-screen bg-white px-4 py-10 text-slate-950">
       <div className="mx-auto flex max-w-xl flex-col gap-6">
         <div>
           <h1 className="text-2xl font-semibold">New post</h1>

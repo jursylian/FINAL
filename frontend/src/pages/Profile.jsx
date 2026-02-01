@@ -47,7 +47,7 @@ export default function Profile() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || "Не удалось загрузить профиль.");
+          setError(err.message || "Failed to load profile.");
         }
       } finally {
         if (mounted) {
@@ -67,7 +67,7 @@ export default function Profile() {
         }
       } catch (err) {
         if (mounted) {
-          setPostsError(err.message || "Не удалось загрузить посты.");
+          setPostsError(err.message || "Failed to load posts.");
         }
       } finally {
         if (mounted) {
@@ -103,7 +103,7 @@ export default function Profile() {
             : prev.following,
       }));
     } catch (err) {
-      setError(err.message || "Не удалось обновить подписку.");
+      setError(err.message || "Failed to update follow.");
     } finally {
       setFollowLoading(false);
     }
@@ -111,16 +111,18 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
-        <div className="mx-auto max-w-xl">Загрузка...</div>
+      <div className="px-4 py-10">
+        <div className="mx-auto max-w-[935px] text-[14px] text-[#737373]">
+          Loading...
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
-        <div className="mx-auto max-w-xl rounded-2xl bg-white p-6 text-rose-600">
+      <div className="px-4 py-10">
+        <div className="mx-auto max-w-[935px] text-[14px] text-red-500">
           {error}
         </div>
       </div>
@@ -134,103 +136,142 @@ export default function Profile() {
   const postsCount = stats.posts || postsTotal || posts.length;
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6">
-        <div className="rounded-2xl bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-          <div className="flex flex-wrap items-center gap-6">
-            <div className="h-24 w-24 overflow-hidden rounded-full bg-slate-200">
+    <div className="px-4 py-8 pb-20 md:pb-8">
+      <div className="mx-auto max-w-[935px]">
+        {/* ===== HEADER ===== */}
+        <div className="flex flex-col md:flex-row gap-6 md:gap-[100px] border-b border-[#DBDBDB] pb-10">
+          {/* Avatar */}
+          <div className="flex shrink-0 items-start justify-center w-full md:w-[290px]">
+            <div className="h-[80px] w-[80px] md:h-[150px] md:w-[150px] overflow-hidden rounded-full bg-[#FAFAFA] border border-[#DBDBDB]">
               {profile.avatar ? (
                 <img
                   src={profile.avatar}
                   alt={profile.username}
                   className="h-full w-full object-cover"
                 />
-              ) : null}
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-[48px] text-[#DBDBDB]">
+                  <img src="/images/ICH.svg" className="h-full w-full object-cover" />
+                </div>
+              )}
             </div>
-            <div className="flex-1">
-              <h1 className="text-2xl font-semibold">
-                {profile.name || profile.username}
-              </h1>
-              <div className="text-sm text-slate-500">@{profile.username}</div>
-            </div>
-            {isOwner ? (
-              <Link
-                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-                to={`/profile/${profile._id}/edit`}
-              >
-                Редактировать профиль
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={handleToggleFollow}
-                disabled={followLoading}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                  stats.isFollowing
-                    ? "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50"
-                    : "bg-slate-900 text-white hover:bg-slate-800"
-                }`}
-              >
-                {stats.isFollowing ? "Отписаться" : "Подписаться"}
-              </button>
-            )}
           </div>
-          {profile.bio ? (
-            <p className="mt-4 text-sm text-slate-700">{profile.bio}</p>
-          ) : null}
-          <div className="mt-6 flex flex-wrap gap-6 text-sm text-slate-600">
-            <div>
-              <span className="font-semibold text-slate-900">{postsCount}</span>{" "}
-              постов
+
+          {/* Info */}
+          <div className="flex flex-1 flex-col items-center gap-5 text-center md:items-start md:text-left">
+            {/* Row 1: username + buttons */}
+            <div className="flex items-center gap-3 md:gap-5">
+              <h1 className="text-[20px] font-normal text-[#262626]">
+                {profile.username}
+              </h1>
+
+              {isOwner ? (
+                <Link
+                  to={`/profile/${profile._id}/edit`}
+                  className="rounded-lg bg-[#EFEFEF] px-4 py-1.5 text-[14px] font-semibold text-[#262626] hover:bg-[#DBDBDB] transition"
+                >
+                  Edit profile
+                </Link>
+              ) : (
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleToggleFollow}
+                    disabled={followLoading}
+                    className={[
+                      "rounded-lg px-6 py-1.5 text-[14px] font-semibold transition",
+                      "disabled:cursor-not-allowed disabled:opacity-60",
+                      stats.isFollowing
+                        ? "bg-[#EFEFEF] text-[#262626] hover:bg-[#DBDBDB]"
+                        : "bg-[#0095F6] text-white hover:bg-[#1877F2]",
+                    ].join(" ")}
+                  >
+                    {stats.isFollowing ? "Following" : "Follow"}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-lg bg-[#EFEFEF] px-6 py-1.5 text-[14px] font-semibold text-[#262626] hover:bg-[#DBDBDB] transition"
+                  >
+                    Message
+                  </button>
+                </div>
+              )}
             </div>
-            <Link to={`/profile/${profile._id}/followers`}>
-              <span className="font-semibold text-slate-900">
-                {stats.followers}
-              </span>{" "}
-              подписчиков
-            </Link>
-            <Link to={`/profile/${profile._id}/following`}>
-              <span className="font-semibold text-slate-900">
-                {stats.following}
-              </span>{" "}
-              подписки
-            </Link>
+
+            {/* Row 2: stats */}
+            <div className="flex justify-center gap-10 text-[16px] text-[#262626] md:justify-start">
+              <div>
+                <span className="font-semibold">{postsCount}</span> posts
+              </div>
+              <Link to={`/profile/${profile._id}/followers`} className="hover:opacity-60 transition">
+                <span className="font-semibold">{stats.followers}</span> followers
+              </Link>
+              <Link to={`/profile/${profile._id}/following`} className="hover:opacity-60 transition">
+                <span className="font-semibold">{stats.following}</span> following
+              </Link>
+            </div>
+
+            {/* Row 3: name + bio + website */}
+            <div className="flex flex-col gap-1">
+              {profile.name && (
+                <div className="text-[14px] font-semibold text-[#262626]">
+                  {profile.name}
+                </div>
+              )}
+              {profile.bio && (
+                <div className="text-[14px] text-[#262626] whitespace-pre-line">
+                  {profile.bio}
+                </div>
+              )}
+              {profile.website && (
+                <a
+                  href={profile.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[14px] font-semibold text-[#00376B] hover:underline"
+                >
+                  {profile.website.replace(/^https?:\/\//, "")}
+                </a>
+              )}
+            </div>
           </div>
         </div>
 
-        <div>
-          <h2 className="mb-4 text-lg font-semibold">Посты</h2>
-          {postsLoading ? <div>Загрузка постов...</div> : null}
-          {postsError ? (
-            <div className="rounded-2xl bg-white p-4 text-rose-600">
-              {postsError}
+        {/* ===== POSTS GRID ===== */}
+        <div className="mt-5">
+          {postsLoading && (
+            <div className="text-[14px] text-[#737373]">Loading posts...</div>
+          )}
+          {postsError && (
+            <div className="text-[14px] text-red-500">{postsError}</div>
+          )}
+          {!postsLoading && !postsError && posts.length === 0 && (
+            <div className="flex flex-col items-center py-16">
+              <div className="text-[28px] font-light text-[#262626]">
+                No Posts Yet
+              </div>
             </div>
-          ) : null}
-          {!postsLoading && !postsError && posts.length === 0 ? (
-            <div className="rounded-2xl bg-white p-4 text-slate-600">
-              Пока нет постов.
-            </div>
-          ) : null}
-          <div
-            className="grid gap-4"
-            style={{
-              gridTemplateColumns: "repeat(3, 307.6600036621094px)",
-              gridAutoRows: "307.6600036621094px",
-            }}
-          >
+          )}
+          <div className="grid grid-cols-3 gap-1">
             {posts.map((post) => (
               <Link
                 key={post._id}
                 to={`/post/${post._id}`}
-                className="group overflow-hidden bg-white shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
+                className="group relative aspect-square overflow-hidden bg-[#FAFAFA]"
               >
                 {post.image ? (
                   <img
                     src={post.image}
                     alt={post.caption || "post"}
-                    className="h-full w-full object-cover transition group-hover:scale-105"
+                    className="h-full w-full object-cover"
                   />
                 ) : null}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition group-hover:opacity-100">
+                  <div className="flex items-center gap-6 text-white font-semibold text-[14px]">
+                    <span>♥ {post.likesCount || 0}</span>
+                    <span>💬 {post.commentsCount || 0}</span>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>

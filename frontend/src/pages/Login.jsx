@@ -65,7 +65,7 @@ export default function Login() {
           />
         </div>
 
-        <div className="flex w-[350px] flex-col items-center pt-4">
+        <div className="flex w-full max-w-[350px] flex-col items-center pt-4 px-4">
           <div className="w-full  border border-[#DBDBDB]  px-10 py-8">
             <div className="mb-8 flex justify-center">
               <img

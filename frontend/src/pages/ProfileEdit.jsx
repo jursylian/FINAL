@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
@@ -8,13 +8,17 @@ export default function ProfileEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user: me, updateUser } = useAuth();
+  const fileRef = useRef(null);
+
   const [form, setForm] = useState({
     name: "",
     username: "",
     email: "",
     bio: "",
+    website: "",
   });
   const [avatarFile, setAvatarFile] = useState(null);
+  const [currentAvatar, setCurrentAvatar] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -24,6 +28,8 @@ export default function ProfileEdit() {
     () => (avatarFile ? URL.createObjectURL(avatarFile) : null),
     [avatarFile]
   );
+
+  const avatarSrc = avatarPreview || currentAvatar || "/images/ICH.svg";
 
   useEffect(() => {
     let mounted = true;
@@ -38,11 +44,13 @@ export default function ProfileEdit() {
             username: data.user.username || "",
             email: data.user.email || "",
             bio: data.user.bio || "",
+            website: data.user.website || "",
           });
+          setCurrentAvatar(data.user.avatar || null);
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || "Не удалось загрузить профиль.");
+          setError(err.message || "Failed to load profile.");
         }
       } finally {
         if (mounted) {
@@ -82,6 +90,7 @@ export default function ProfileEdit() {
           username: form.username || undefined,
           email: form.email || undefined,
           bio: form.bio || undefined,
+          website: form.website || undefined,
         }),
       });
 
@@ -104,13 +113,13 @@ export default function ProfileEdit() {
       navigate(`/profile/${id}`, { replace: true });
     } catch (err) {
       if (err.status === 400) {
-        setError("Проверьте корректность полей.");
+        setError("Check the fields are correct.");
       } else if (err.status === 409) {
-        setError("Email или username уже заняты.");
+        setError("Email or username is already taken.");
       } else if (err.status === 403) {
-        setError("Нет прав для редактирования профиля.");
+        setError("No permission to edit this profile.");
       } else {
-        setError(err.message || "Не удалось сохранить изменения.");
+        setError(err.message || "Failed to save changes.");
       }
     } finally {
       setSaving(false);
@@ -123,94 +132,121 @@ export default function ProfileEdit() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
-        <div className="mx-auto max-w-xl">Загрузка...</div>
+      <div className="px-4 py-10">
+        <div className="mx-auto max-w-[630px] text-[14px] text-[#737373]">
+          Loading...
+        </div>
       </div>
     );
   }
 
+  const bioLength = form.bio.length;
+
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
-      <div className="mx-auto flex max-w-xl flex-col gap-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Редактирование профиля</h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Обновите основные данные и аватар.
-          </p>
-        </div>
-        <form
-          onSubmit={handleSubmit}
-          className="grid gap-4 rounded-2xl bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
-        >
-          <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            Имя
+    <div className="px-4 py-8">
+      <div className="mx-auto max-w-[630px]">
+        <h1 className="text-[20px] font-semibold text-[#262626] mb-8">
+          Edit profile
+        </h1>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* ===== Avatar section ===== */}
+          <div className="flex items-center gap-4 rounded-2xl bg-[#EFEFEF] p-4">
+            <div className="h-[56px] w-[56px] shrink-0 overflow-hidden rounded-full bg-[#DBDBDB]">
+              <img
+                src={avatarSrc}
+                alt={form.username}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[16px] font-semibold text-[#262626] truncate">
+                {form.username}
+              </div>
+              {form.bio && (
+                <div className="text-[14px] text-[#737373] truncate">
+                  {form.bio}
+                </div>
+              )}
+            </div>
             <input
-              name="name"
-              type="text"
-              value={form.name}
-              onChange={updateField}
-              className="rounded-xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-slate-400"
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+              className="hidden"
             />
-          </label>
-          <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            Username
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="shrink-0 rounded-lg bg-[#0095F6] px-4 py-1.5 text-[14px] font-semibold text-white hover:bg-[#1877F2] transition"
+            >
+              New photo
+            </button>
+          </div>
+
+          {/* ===== Username ===== */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[16px] font-semibold text-[#262626]">
+              Username
+            </label>
             <input
               name="username"
               type="text"
               value={form.username}
               onChange={updateField}
               required
-              className="rounded-xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-slate-400"
+              className="rounded-xl border border-[#DBDBDB] bg-white px-4 py-2.5 text-[14px] text-[#262626] outline-none transition focus:border-[#A8A8A8]"
             />
-          </label>
-          <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            Email
+          </div>
+
+          {/* ===== Website ===== */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[16px] font-semibold text-[#262626]">
+              Website
+            </label>
             <input
-              name="email"
-              type="email"
-              value={form.email}
+              name="website"
+              type="url"
+              value={form.website}
               onChange={updateField}
-              required
-              className="rounded-xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-slate-400"
+              placeholder="https://"
+              className="rounded-xl border border-[#DBDBDB] bg-white px-4 py-2.5 text-[14px] text-[#262626] placeholder:text-[#C7C7C7] outline-none transition focus:border-[#A8A8A8]"
             />
-          </label>
-          <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            Bio
+          </div>
+
+          {/* ===== About ===== */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[16px] font-semibold text-[#262626]">
+              About
+            </label>
             <textarea
               name="bio"
-              rows={4}
+              rows={3}
+              maxLength={150}
               value={form.bio}
               onChange={updateField}
-              className="rounded-xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-slate-400"
+              className="resize-none rounded-xl border border-[#DBDBDB] bg-white px-4 py-2.5 text-[14px] text-[#262626] outline-none transition focus:border-[#A8A8A8]"
             />
-          </label>
-          <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            Аватар
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(event) => setAvatarFile(event.target.files?.[0] || null)}
-              className="block text-sm text-slate-600"
-            />
-            {avatarPreview ? (
-              <img
-                src={avatarPreview}
-                alt="preview"
-                className="h-24 w-24 rounded-full object-cover"
-              />
-            ) : null}
-          </label>
-          {error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div className="text-right text-[12px] text-[#C7C7C7]">
+              {bioLength} / 150
+            </div>
+          </div>
+
+          {/* ===== Error ===== */}
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-600">
               {error}
             </div>
-          ) : null}
+          )}
+
+          {/* ===== Submit ===== */}
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-2 w-[268px] rounded-xl bg-[#0095F6] py-2.5 text-[14px] font-semibold text-white transition hover:bg-[#1877F2] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Сохраняем..." : "Сохранить"}
+            {saving ? "Saving..." : "Submit"}
           </button>
         </form>
       </div>

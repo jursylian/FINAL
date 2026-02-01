@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
@@ -15,6 +15,7 @@ export default function PostDetail() {
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [commentText, setCommentText] = useState("");
   const [commentError, setCommentError] = useState(null);
+  const [commentSending, setCommentSending] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -92,11 +93,12 @@ export default function PostDetail() {
   async function handleAddComment(event) {
     event.preventDefault();
     const text = commentText.trim();
-    if (!text) {
-      setCommentError("Please enter a comment.");
+    if (!text || commentSending) {
+      if (!text) setCommentError("Please enter a comment.");
       return;
     }
     setCommentError(null);
+    setCommentSending(true);
     try {
       const data = await request(`/posts/${id}/comments`, {
         method: "POST",
@@ -109,21 +111,23 @@ export default function PostDetail() {
       }
     } catch (err) {
       setCommentError(err.message || "Unable to add a comment.");
+    } finally {
+      setCommentSending(false);
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
-        <div className="mx-auto max-w-2xl">Loading...</div>
+      <div className="px-4 py-10">
+        <div className="mx-auto max-w-2xl text-[14px] text-[#737373]">Loading...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
-        <div className="mx-auto max-w-2xl rounded-2xl bg-white p-6 text-rose-600">
+      <div className="px-4 py-10">
+        <div className="mx-auto max-w-2xl text-[14px] text-red-500">
           {error}
         </div>
       </div>
@@ -135,12 +139,12 @@ export default function PostDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
+    <div className="px-4 py-10">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        <Link className="text-sm font-semibold text-slate-900" to="/">
-          Back to feed
+        <Link className="text-[14px] font-semibold text-[#00376B]" to="/">
+          ← Back to feed
         </Link>
-        <article className="overflow-hidden rounded-2xl bg-white shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+        <article className="overflow-hidden rounded-lg border border-[#EFEFEF] bg-white">
           {post.image ? (
             <img
               src={post.image}
@@ -149,61 +153,62 @@ export default function PostDetail() {
             />
           ) : null}
           <div className="grid gap-3 p-6">
-            <div className="text-sm text-slate-500">
+            <div className="text-[12px] text-[#8E8E8E]">
               @{post.authorId?.username || "unknown"}
             </div>
             {post.caption ? (
-              <div className="text-base">{post.caption}</div>
+              <div className="text-[14px] text-[#262626]">{post.caption}</div>
             ) : null}
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={handleToggleLike}
                 disabled={likeLoading}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                  stats.liked
-                    ? "bg-rose-500 text-white hover:bg-rose-600"
-                    : "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50"
-                }`}
+                className="disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {stats.liked ? "Liked" : "Like"}
+                <img
+                  src={stats.liked ? "/images/Like_active.svg" : "/images/Like.svg"}
+                  alt="Like"
+                  className="h-6 w-6 cursor-pointer"
+                />
               </button>
-              <div className="text-sm text-slate-600">
-                Likes: <span className="font-semibold">{stats.likes}</span>
+              <div className="text-[14px] text-[#262626]">
+                <span className="font-semibold">{stats.likes}</span> likes
               </div>
             </div>
           </div>
         </article>
 
-        <div className="rounded-2xl bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-          <h2 className="text-lg font-semibold">Comments</h2>
+        <div className="rounded-lg border border-[#EFEFEF] bg-white p-6">
+          <h2 className="text-[16px] font-semibold text-[#262626]">Comments</h2>
           <form onSubmit={handleAddComment} className="mt-4 grid gap-3">
             <textarea
               value={commentText}
               onChange={(event) => setCommentText(event.target.value)}
               rows={3}
               placeholder="Write a comment..."
-              className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+              className="rounded-lg border border-[#DBDBDB] px-4 py-3 text-[14px] text-[#262626] outline-none transition focus:border-[#A8A8A8]"
             />
             {commentError ? (
-              <div className="text-sm text-rose-600">{commentError}</div>
+              <div className="text-[12px] text-red-500">{commentError}</div>
             ) : null}
             <button
               type="submit"
-              className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+              disabled={commentSending}
+              className="w-fit rounded-lg bg-[#0095F6] px-6 py-2 text-[14px] font-semibold text-white transition hover:bg-[#1877F2] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Send
+              {commentSending ? "Sending..." : "Send"}
             </button>
           </form>
 
           <div className="mt-6 grid gap-4">
-            {commentsLoading ? <div>Loading comments...</div> : null}
+            {commentsLoading ? <div className="text-[14px] text-[#737373]">Loading comments...</div> : null}
             {!commentsLoading && comments.length === 0 ? (
-              <div className="text-sm text-slate-600">No comments yet.</div>
+              <div className="text-[14px] text-[#737373]">No comments yet.</div>
             ) : null}
             {comments.map((comment) => (
               <div key={comment._id} className="flex gap-3">
-                <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-200">
+                <div className="h-10 w-10 overflow-hidden rounded-full bg-[#DBDBDB]">
                   {comment.userId?.avatar ? (
                     <img
                       src={comment.userId.avatar}
@@ -213,16 +218,16 @@ export default function PostDetail() {
                   ) : null}
                 </div>
                 <div>
-                  <div className="text-sm font-semibold">
+                  <div className="text-[14px] font-semibold text-[#262626]">
                     @{comment.userId?.username || "unknown"}
                   </div>
-                  <div className="text-sm text-slate-700">{comment.text}</div>
+                  <div className="text-[14px] text-[#262626]">{comment.text}</div>
                 </div>
               </div>
             ))}
           </div>
           {commentsTotal > comments.length ? (
-            <div className="mt-4 text-xs text-slate-500">
+            <div className="mt-4 text-[12px] text-[#8E8E8E]">
               Showing {comments.length} of {commentsTotal}
             </div>
           ) : null}

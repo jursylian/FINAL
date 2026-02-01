@@ -2,6 +2,7 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
+import AppLayout from "./components/AppLayout.jsx";
 
 import Feed from "./pages/Feed.jsx";
 import Login from "./pages/Login.jsx";
@@ -28,79 +29,24 @@ export default function App() {
       <Route path="/reset" element={<Reset />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Protected */}
+      {/* Protected with shared layout (sidebar) */}
       <Route
-        path="/"
         element={
           <ProtectedRoute>
-            <Feed />
+            <AppLayout />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/posts/new"
-        element={
-          <ProtectedRoute>
-            <PostCreate />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/post/:id"
-        element={
-          <ProtectedRoute>
-            <PostDetail />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/:id"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/:id/edit"
-        element={
-          <ProtectedRoute>
-            <ProfileEdit />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/:id/followers"
-        element={
-          <ProtectedRoute>
-            <Followers />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/:id/following"
-        element={
-          <ProtectedRoute>
-            <Following />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/explore"
-        element={
-          <ProtectedRoute>
-            <Explore />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/notifications"
-        element={
-          <ProtectedRoute>
-            <Notifications />
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route path="/" element={<Feed />} />
+        <Route path="/posts/new" element={<PostCreate />} />
+        <Route path="/post/:id" element={<PostDetail />} />
+        <Route path="/profile/:id" element={<Profile />} />
+        <Route path="/profile/:id/edit" element={<ProfileEdit />} />
+        <Route path="/profile/:id/followers" element={<Followers />} />
+        <Route path="/profile/:id/following" element={<Following />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/notifications" element={<Notifications />} />
+      </Route>
 
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />

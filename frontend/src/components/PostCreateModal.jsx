@@ -87,7 +87,7 @@ export default function PostCreateModal({ onClose }) {
         className="absolute inset-0 bg-black/60"
         aria-label="Close"
       />
-      <div className="relative z-[71] w-[900px] max-w-[92vw] overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="relative z-[71] w-full md:w-[900px] max-w-[92vw] overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-[#DBDBDB] px-5 py-3">
           <div className="text-[14px] font-semibold text-[#262626]">
             Create new post
@@ -107,7 +107,7 @@ export default function PostCreateModal({ onClose }) {
         <form
           id="post-create-form"
           onSubmit={handleSubmit}
-          className="flex h-[520px]"
+          className="flex flex-col md:flex-row h-auto md:h-[520px]"
         >
           <div className="flex flex-1 items-center justify-center border-r border-[#DBDBDB] bg-white">
             {previewUrl ? (
@@ -141,7 +141,7 @@ export default function PostCreateModal({ onClose }) {
             />
           </div>
 
-          <div className="flex w-[320px] flex-col">
+          <div className="flex w-full md:w-[320px] flex-col">
             <div className="flex items-center gap-3 px-4 py-4">
               <div className="h-9 w-9 rounded-full bg-[#DBDBDB]" />
               <div className="text-[14px] font-semibold text-[#262626]">
@@ -168,7 +168,7 @@ export default function PostCreateModal({ onClose }) {
                 />
               </button>
               {error ? (
-                <div className="mt-3 text-[12px] text-rose-600">{error}</div>
+                <div className="mt-3 text-[12px] text-red-500">{error}</div>
               ) : null}
             </div>
 

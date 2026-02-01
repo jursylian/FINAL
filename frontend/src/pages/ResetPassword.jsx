@@ -43,7 +43,7 @@ export default function ResetPassword() {
         body: JSON.stringify({ token, password }),
       });
       setOk(true);
-      // чуть-чуть времени, чтобы показать успех — можно сразу navigate
+      // brief delay to show success message
       setTimeout(() => navigate("/login", { replace: true }), 800);
     } catch (err) {
       setError(err.message || "Unable to reset password.");
@@ -79,7 +79,7 @@ export default function ResetPassword() {
       </div>
 
       <div className="flex min-h-[calc(100vh-60px)] items-center justify-center px-4">
-        <div className="w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white px-10 py-8">
+        <div className="w-full max-w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white px-10 py-8">
           <h1 className="text-center text-[14px] font-semibold text-[#262626]">
             Create a new password
           </h1>

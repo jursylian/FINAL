@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
 
 import { useAuth } from "./AuthContext.jsx";
@@ -8,13 +8,13 @@ export default function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="page">
+      <div className="flex min-h-screen items-center justify-center bg-white text-[14px] text-[#737373]">
         {authError && (
           <div className="mb-2 text-center text-xs text-red-500">
             {authError}
           </div>
         )}
-        Загрузка...
+        Loading...
       </div>
     );
   }
@@ -22,12 +22,12 @@ export default function ProtectedRoute({ children }) {
   if (!token) {
     if (authError) {
       return (
-        <div className="page">
-          <div className="mb-2 text-center text-xs text-red-500">
-            {authError}
-          </div>
-          <div className="text-center text-sm">
-            Сессия истекла. Перейдите на страницу входа.
+        <div className="flex min-h-screen items-center justify-center bg-white">
+          <div className="text-center">
+            <div className="mb-2 text-xs text-red-500">{authError}</div>
+            <div className="text-sm text-[#262626]">
+              Session expired. Please log in again.
+            </div>
           </div>
         </div>
       );

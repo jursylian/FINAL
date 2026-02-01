@@ -125,8 +125,8 @@ export default function PostModal({ postId, onClose }) {
         className="absolute inset-0 bg-black/60"
         aria-label="Close"
       />
-      <div className="relative z-[61] flex h-[78vh] w-[1100px] max-w-[92vw] overflow-hidden rounded-2xl bg-white text-[#262626] shadow-2xl">
-        <div className="flex-1 bg-black">
+      <div className="relative z-[61] flex flex-col md:flex-row h-[90vh] md:h-[78vh] w-full md:w-[1100px] max-w-[92vw] overflow-hidden rounded-2xl bg-white text-[#262626] shadow-2xl">
+        <div className="h-[40vh] md:h-auto md:flex-1 bg-black shrink-0">
           {loading ? (
             <div className="flex h-full items-center justify-center text-sm text-white/70">
               Loading...
@@ -144,7 +144,7 @@ export default function PostModal({ postId, onClose }) {
           )}
         </div>
 
-        <div className="flex w-[420px] flex-col border-l border-[#DBDBDB]">
+        <div className="flex w-full md:w-[420px] flex-col border-l border-[#DBDBDB] min-h-0 flex-1">
           <div className="flex items-center gap-3 border-b border-[#DBDBDB] px-5 py-4">
             <div className="h-9 w-9 rounded-full bg-[#DBDBDB]" />
             <div className="text-sm font-semibold">
@@ -174,7 +174,7 @@ export default function PostModal({ postId, onClose }) {
             ) : null}
 
             {commentError ? (
-              <div className="text-xs text-rose-600">{commentError}</div>
+              <div className="text-xs text-red-500">{commentError}</div>
             ) : null}
 
             {comments.map((comment) => (
@@ -243,7 +243,7 @@ export default function PostModal({ postId, onClose }) {
               </button>
             </div>
             {error ? (
-              <div className="mt-2 text-xs text-rose-600">{error}</div>
+              <div className="mt-2 text-xs text-red-500">{error}</div>
             ) : null}
           </form>
         </div>
