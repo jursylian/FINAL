@@ -78,13 +78,11 @@ export default function NotificationsList() {
           }`}
         >
           <div className="h-8 w-8 overflow-hidden rounded-full bg-[#DBDBDB]">
-            {n.actorId?.avatar ? (
-              <img
-                src={n.actorId.avatar}
-                alt={n.actorId.username}
-                className="h-full w-full object-cover"
-              />
-            ) : null}
+            <img
+              src={n.actorId?.avatar || "/images/ICH.svg"}
+              alt={n.actorId?.username || "user"}
+              className="h-full w-full object-cover"
+            />
           </div>
           <div className="flex-1">
             <Link to={buildLink(n)} className="text-[13px] text-[#262626]">

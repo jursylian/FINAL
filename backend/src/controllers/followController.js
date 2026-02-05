@@ -1,23 +1,8 @@
 import Follow from "../models/Follow.js";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
-
-function parsePagination(query) {
-  const page = Math.max(1, Number(query.page) || 1);
-  const limit = Math.min(50, Math.max(1, Number(query.limit) || 20));
-  return { page, limit, skip: (page - 1) * limit };
-}
-
-function handleFollowError(err, res) {
-  if (err?.name === "ValidationError") {
-    return res.status(400).json({ message: err.message, details: err.errors });
-  }
-  if (err?.code === 11000) {
-    return res.status(409).json({ message: "Already following" });
-  }
-  console.error(err);
-  return res.status(500).json({ message: "Internal Server Error" });
-}
+import { handleError } from "../utils/errorHandler.js";
+import { parsePagination } from "../utils/pagination.js";
 
 export async function toggleFollow(req, res) {
   try {
@@ -68,7 +53,7 @@ export async function toggleFollow(req, res) {
       followingCount,
     });
   } catch (err) {
-    return handleFollowError(err, res);
+    return handleError(err, res);
   }
 }
 
@@ -89,7 +74,7 @@ export async function listFollowers(req, res) {
     const mapped = items.map((item) => item.followerId);
     return res.status(200).json({ items: mapped, page, limit, total });
   } catch (err) {
-    return handleFollowError(err, res);
+    return handleError(err, res);
   }
 }
 
@@ -110,6 +95,6 @@ export async function listFollowing(req, res) {
     const mapped = items.map((item) => item.followingId);
     return res.status(200).json({ items: mapped, page, limit, total });
   } catch (err) {
-    return handleFollowError(err, res);
+    return handleError(err, res);
   }
 }

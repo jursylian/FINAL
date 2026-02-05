@@ -31,7 +31,7 @@ export function ModalStackRoot({ open, onClose, children }) {
 
   return (
     <div
-      className="fixed top-0 bottom-0 right-0 left-[245px] z-[90]"
+      className="fixed inset-0 z-[90]"
       onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/50" />
@@ -53,8 +53,8 @@ export function ModalWindow({
           height: "min(600px, calc(100% - 64px))",
         }
       : {
-          width: "min(1112px, calc(100% - 32px))",
-          height: "min(722px, calc(100% - 64px))",
+          width: "min(1002px, 90vw)",
+          height: "min(722px, 90vh)",
         };
 
   return (
@@ -81,13 +81,11 @@ export function ModalWindow({
 export default function ModalShell({
   open,
   onClose,
-  preset,
-  sizePreset,
+  preset = "post",
   scope = "global",
   children,
 }) {
   const isDesktop = useIsDesktop();
-  const resolvedPreset = preset || sizePreset || "post";
 
   useEffect(() => {
     if (!open || !isDesktop) return;
@@ -114,7 +112,7 @@ export default function ModalShell({
   }
 
   const sizeStyle =
-    resolvedPreset === "create"
+    preset === "create"
       ? {
           width: "min(900px, calc(100vw - 32px))",
           height: "min(600px, calc(100vh - 32px))",
@@ -124,7 +122,7 @@ export default function ModalShell({
           height: "min(722px, calc(100vh - 32px))",
         };
 
-  if (resolvedPreset === "menu") {
+  if (preset === "menu") {
     const containerClass =
       scope === "local"
         ? "absolute inset-0 z-[80] flex items-center justify-center"
@@ -145,7 +143,7 @@ export default function ModalShell({
   const wrapperClass =
     scope === "local"
       ? "absolute inset-0 z-[70]"
-      : "fixed top-0 bottom-0 right-0 left-[245px] z-[100]";
+      : "fixed inset-0 z-[100]";
 
   return (
     <div className={wrapperClass} onClick={onClose}>

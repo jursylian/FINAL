@@ -5,14 +5,15 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { request } from "../lib/apiClient.js";
 import UserAvatar from "./UserAvatar.jsx";
 
-export default function PostCreateContent({ onClose, onCreated, showBack }) {
+export default function PostCreateContent({ onClose, onCreated, onUpdated, showBack, post }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const inputRef = useRef(null);
+  const isEditing = Boolean(post);
 
-  const [caption, setCaption] = useState("");
+  const [caption, setCaption] = useState(post?.caption || "");
   const [file, setFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState("");
+  const [previewUrl, setPreviewUrl] = useState(post?.image || "");
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -43,71 +44,79 @@ export default function PostCreateContent({ onClose, onCreated, showBack }) {
     if (saving) return;
 
     setError(null);
-    if (!file) {
+    if (!isEditing && !file) {
       setError("Please choose an image.");
       return;
     }
 
     setSaving(true);
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-      if (caption.trim()) {
-        formData.append("caption", caption.trim());
-      }
+      if (isEditing) {
+        const body = { caption: caption.trim() };
+        const data = await request(`/posts/${post._id}`, {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        });
+        if (data?.post) {
+          onUpdated?.(data.post);
+          window.dispatchEvent(
+            new CustomEvent("post:updated", { detail: data.post }),
+          );
+        }
+      } else {
+        const formData = new FormData();
+        formData.append("image", file);
+        if (caption.trim()) {
+          formData.append("caption", caption.trim());
+        }
 
-      const data = await request("/posts", {
-        method: "POST",
-        body: formData,
-      });
+        const data = await request("/posts", {
+          method: "POST",
+          body: formData,
+        });
 
-      if (data?.post) {
-        onCreated?.(data.post);
-        window.dispatchEvent(
-          new CustomEvent("post:created", { detail: data.post }),
-        );
+        if (data?.post) {
+          onCreated?.(data.post);
+          window.dispatchEvent(
+            new CustomEvent("post:created", { detail: data.post }),
+          );
+        }
       }
       onClose?.();
     } catch (err) {
       if (err.status === 400) {
         setError("Check the image and caption.");
       } else if (err.status === 401) {
-        setError("Please sign in to create a post.");
+        setError(isEditing ? "Please sign in to edit." : "Please sign in to create a post.");
       } else {
-        setError(err.message || "Unable to create a post.");
+        setError(err.message || (isEditing ? "Unable to update post." : "Unable to create a post."));
       }
     } finally {
       setSaving(false);
     }
   }
 
-  const shareDisabled = !file || saving;
-
   return (
     <div className="flex h-full w-full flex-col bg-white">
-      <div className="flex items-center justify-between border-b border-[#DBDBDB] px-5 py-3">
-        <div className="flex items-center gap-3">
-          {showBack ? (
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="text-[14px] text-[#262626]"
-            >
-              Back
-            </button>
-          ) : null}
-          <div className="text-[14px] font-semibold text-[#262626]">
-            Create new post
-          </div>
+      <div className="relative flex items-center justify-center border-b border-[#DBDBDB] px-5 py-3">
+        {showBack ? (
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="absolute left-5 text-[14px] text-[#262626]"
+          >
+            Back
+          </button>
+        ) : null}
+        <div className="text-[14px] font-semibold text-[#262626]">
+          {isEditing ? "Edit post" : "Create new post"}
         </div>
         <button
           type="submit"
           form="post-create-form"
-          className={[
-            "text-[14px] font-semibold text-[#0095F6] cursor-pointer",
-          ].join(" ")}
+          className="absolute right-5 text-[14px] font-semibold text-[#0095F6] cursor-pointer"
         >
-          Share
+          {isEditing ? "Done" : "Share"}
         </button>
       </div>
 
@@ -155,40 +164,33 @@ export default function PostCreateContent({ onClose, onCreated, showBack }) {
             </div>
           </div>
 
-          <div className="px-4 py-3">
+          <div className="px-4 py-3 border-b border-[#DBDBDB]">
             <textarea
               value={caption}
               onChange={(event) => setCaption(event.target.value)}
+              maxLength={200}
               placeholder="Write a caption..."
               className="h-[180px] w-full resize-none text-[14px] text-[#262626] outline-none placeholder:text-[#8E8E8E]"
             />
-            <button
-              type="button"
-              className="mt-3 inline-flex items-center text-[#8E8E8E]"
-              aria-label="Emoji"
-            >
-              <img
-                src="/images/Smile.svg"
-                alt="Emoji"
-                className="h-6 w-6 cursor-pointer"
-              />
-            </button>
+            <div className="mt-3 flex items-center justify-between">
+              <button
+                type="button"
+                className="inline-flex items-center text-[#8E8E8E]"
+                aria-label="Emoji"
+              >
+                <img
+                  src="/images/Smile.svg"
+                  alt="Emoji"
+                  className="h-6 w-6 cursor-pointer"
+                />
+              </button>
+              <span className="text-[12px] text-[#C7C7C7]">{caption.length}/200</span>
+            </div>
             {error ? (
               <div className="mt-3 text-[12px] text-red-500">{error}</div>
             ) : null}
           </div>
 
-          <div className="h-px bg-[#DBDBDB]" />
-
-          <div className="px-4 py-3">
-            <div className="flex h-10 items-center gap-2 rounded-full bg-[#FAFAFA] px-4 text-[14px] text-[#262626]">
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                className="h-full w-full bg-transparent outline-none placeholder:text-[#8E8E8E]"
-              />
-            </div>
-          </div>
         </div>
       </form>
     </div>

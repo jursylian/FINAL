@@ -8,18 +8,8 @@ export default function useIsDesktop() {
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
     const handler = (event) => setDesktop(event.matches);
-    if (mq.addEventListener) {
-      mq.addEventListener("change", handler);
-    } else {
-      mq.addListener(handler);
-    }
-    return () => {
-      if (mq.removeEventListener) {
-        mq.removeEventListener("change", handler);
-      } else {
-        mq.removeListener(handler);
-      }
-    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
 
   return desktop;

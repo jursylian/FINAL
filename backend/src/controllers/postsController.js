@@ -1,46 +1,9 @@
-import mongoose from "mongoose";
 import Post from "../models/Post.js";
 import Like from "../models/Like.js";
-import Comment from "../models/Comment.js";
-import User from "../models/User.js";
-import Follow from "../models/Follow.js";
-
-function handlePostError(err, res) {
-  if (err?.name === "ValidationError") {
-    return res.status(400).json({ message: err.message, details: err.errors });
-  }
-  console.error(err);
-  return res.status(500).json({ message: "Internal Server Error" });
-}
-
-function parsePagination(query) {
-  const page = Math.max(1, Number(query.page) || 1);
-  const limit = Math.min(50, Math.max(1, Number(query.limit) || 10));
-  return { page, limit, skip: (page - 1) * limit };
-}
-
-function toObjectId(value) {
-  if (!value) {
-    return null;
-  }
-  if (value instanceof mongoose.Types.ObjectId) {
-    return value;
-  }
-  if (mongoose.Types.ObjectId.isValid(value)) {
-    return new mongoose.Types.ObjectId(value);
-  }
-  return null;
-}
-
-async function getFollowingIds(userId) {
-  if (!userId) {
-    return [];
-  }
-  const follows = await Follow.find({ followerId: userId })
-    .select("followingId")
-    .lean();
-  return follows.map((item) => item.followingId);
-}
+import { handleError } from "../utils/errorHandler.js";
+import { parsePagination } from "../utils/pagination.js";
+import { toObjectId } from "../utils/objectId.js";
+import { getFollowingIds } from "../utils/followingIds.js";
 
 function buildFeedMatch(matchClauses) {
   if (!matchClauses.length) {
@@ -124,7 +87,7 @@ export async function createPost(req, res) {
 
     return res.status(201).json({ post });
   } catch (err) {
-    return handlePostError(err, res);
+    return handleError(err, res);
   }
 }
 
@@ -135,9 +98,6 @@ export async function listFeed(req, res) {
 export async function listHomeFeed(req, res) {
   try {
     const { page, limit, skip } = parsePagination(req.query);
-    const itcareer = await User.findOne({ username: "itcareerhub" })
-      .select("_id")
-      .lean();
     const currentUserId = toObjectId(req.userId);
     const followingIds = await getFollowingIds(req.userId);
 
@@ -146,29 +106,23 @@ export async function listHomeFeed(req, res) {
     }
 
     const matchClauses = [
-      { authorId: { $in: followingIds } }, // Home: only following
+      { authorId: { $in: followingIds } },
     ];
     if (currentUserId) {
       matchClauses.push({ authorId: { $ne: currentUserId } });
-    }
-    if (itcareer?._id) {
-      matchClauses.push({ authorId: { $ne: itcareer._id } });
     }
 
     const match = buildFeedMatch(matchClauses);
     const payload = await fetchFeed({ match, page, limit, skip });
     return res.status(200).json(payload);
   } catch (err) {
-    return handlePostError(err, res);
+    return handleError(err, res);
   }
 }
 
 export async function listExploreFeed(req, res) {
   try {
     const { page, limit, skip } = parsePagination(req.query);
-    const itcareer = await User.findOne({ username: "itcareerhub" })
-      .select("_id")
-      .lean();
     const currentUserId = toObjectId(req.userId);
     const followingIds = await getFollowingIds(req.userId);
     const excludedIds = [
@@ -177,17 +131,14 @@ export async function listExploreFeed(req, res) {
     ];
 
     const matchClauses = [
-      { authorId: { $nin: excludedIds } }, // Explore: exclude following + me
+      { authorId: { $nin: excludedIds } },
     ];
-    if (itcareer?._id) {
-      matchClauses.push({ authorId: { $ne: itcareer._id } });
-    }
 
     const match = buildFeedMatch(matchClauses);
     const payload = await fetchFeed({ match, page, limit, skip });
     return res.status(200).json(payload);
   } catch (err) {
-    return handlePostError(err, res);
+    return handleError(err, res);
   }
 }
 
@@ -214,7 +165,7 @@ export async function getPost(req, res) {
       },
     });
   } catch (err) {
-    return handlePostError(err, res);
+    return handleError(err, res);
   }
 }
 
@@ -235,7 +186,7 @@ export async function updatePost(req, res) {
     await post.save();
     return res.status(200).json({ post });
   } catch (err) {
-    return handlePostError(err, res);
+    return handleError(err, res);
   }
 }
 
@@ -251,25 +202,6 @@ export async function deletePost(req, res) {
     await post.deleteOne();
     return res.status(204).send();
   } catch (err) {
-    return handlePostError(err, res);
-  }
-}
-
-export async function listUserPosts(req, res) {
-  try {
-    const { page, limit, skip } = parsePagination(req.query);
-    const userId = req.params.id;
-    const [items, total] = await Promise.all([
-      Post.find({ authorId: userId })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate("authorId", "username avatar"),
-      Post.countDocuments({ authorId: userId }),
-    ]);
-
-    return res.status(200).json({ items, page, limit, total });
-  } catch (err) {
-    return handlePostError(err, res);
+    return handleError(err, res);
   }
 }

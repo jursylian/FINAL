@@ -1,28 +1,19 @@
 import User from "../models/User.js";
 import Post from "../models/Post.js";
 import Follow from "../models/Follow.js";
-
-function toPublicUser(userDoc) {
-  const obj = userDoc.toObject();
-  delete obj.password;
-  return obj;
-}
+import { toPublicUser } from "../utils/publicUser.js";
+import { handleError } from "../utils/errorHandler.js";
+import { parsePagination } from "../utils/pagination.js";
 
 function isOwner(req, userId) {
   return String(req.userId) === String(userId);
 }
 
 function handleUserError(err, res) {
-  if (err?.name === "ValidationError") {
-    return res.status(400).json({ message: err.message, details: err.errors });
-  }
   if (err?.code === 11000) {
-    return res
-      .status(409)
-      .json({ message: "Email or username already in use" });
+    return res.status(409).json({ message: "Email or username already in use" });
   }
-  console.error(err);
-  return res.status(500).json({ message: "Internal Server Error" });
+  return handleError(err, res);
 }
 
 export async function getProfile(req, res) {
@@ -32,8 +23,8 @@ export async function getProfile(req, res) {
       return res.status(404).json({ message: "User not found" });
     }
     const userObj = user.toObject();
-    const isOwner = String(req.userId || "") === String(user._id);
-    if (!isOwner) {
+    const ownerCheck = String(req.userId || "") === String(user._id);
+    if (!ownerCheck) {
       delete userObj.email;
     }
 
@@ -43,7 +34,7 @@ export async function getProfile(req, res) {
       Follow.countDocuments({ followerId: user._id }),
     ]);
     const isFollowing =
-      !isOwner && req.userId
+      !ownerCheck && req.userId
         ? Boolean(
             await Follow.exists({
               followerId: req.userId,
@@ -126,9 +117,7 @@ export async function updateAvatar(req, res) {
 
 export async function listUserPosts(req, res) {
   try {
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = parsePagination(req.query, 10);
     const userId = req.params.id;
 
     const [items, total] = await Promise.all([

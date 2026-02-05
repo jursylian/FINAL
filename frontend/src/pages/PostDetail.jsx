@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
+import { DEFAULT_LIMIT } from "../lib/constants.js";
 
 export default function PostDetail() {
   const { id } = useParams();
@@ -48,7 +49,7 @@ export default function PostDetail() {
       setCommentsLoading(true);
       setCommentError(null);
       try {
-        const data = await request(`/posts/${id}/comments?limit=50`);
+        const data = await request(`/posts/${id}/comments?limit=${DEFAULT_LIMIT}`);
         if (mounted) {
           setComments(data.items || []);
           setCommentsTotal(typeof data.total === "number" ? data.total : 0);
@@ -143,10 +144,6 @@ export default function PostDetail() {
   return (
     <div className="px-4 py-10">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        {/* <Link
-          className="text-[14px] font-semibold text-[#00376B]"
-          to="/"
-        ></Link> */}
         <article className="overflow-hidden rounded-lg border border-[#EFEFEF] bg-white">
           {post.image ? (
             <img

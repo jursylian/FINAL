@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
+import { DEFAULT_LIMIT } from "../lib/constants.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import PostCreateModal from "../components/PostCreateModal.jsx";
 import PostModal from "../components/PostModal.jsx";
@@ -29,6 +30,7 @@ export default function Profile() {
   const [followLoading, setFollowLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [modalPostId, setModalPostId] = useState(null);
+  const [editPost, setEditPost] = useState(null);
 
   const isOwner = useMemo(
     () => me && profile && String(me._id) === String(profile._id),
@@ -68,7 +70,7 @@ export default function Profile() {
       setPostsLoading(true);
       setPostsError(null);
       try {
-        const data = await request(`/users/${id}/posts?limit=50`);
+        const data = await request(`/users/${id}/posts?limit=${DEFAULT_LIMIT}`);
         if (mounted) {
           setPosts(data.items || []);
           setPostsTotal(typeof data.total === "number" ? data.total : 0);
@@ -179,18 +181,20 @@ export default function Profile() {
       <div className="mx-auto max-w-[935px]">
         <div className="flex flex-col md:flex-row gap-6 md:gap-[100px] border-b border-[#DBDBDB] pb-10">
           <div className="flex shrink-0 items-start justify-center w-full md:w-[290px]">
-            <div className="h-[80px] w-[80px] md:h-[150px] md:w-[150px] overflow-hidden rounded-full bg-[#FAFAFA] border border-[#DBDBDB]">
-              {profile.avatar ? (
-                <img
-                  src={profile.avatar}
-                  alt={profile.username}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-[48px] text-[#DBDBDB]">
-                  <img src="/images/ICH.svg" className="h-full w-full object-cover" />
+            <div className="rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[3px] md:p-1">
+              <div className="rounded-full bg-white p-[2px] md:p-[3px]">
+                <div className="h-[80px] w-[80px] md:h-[150px] md:w-[150px] overflow-hidden rounded-full bg-[#FAFAFA]">
+                  {profile.avatar ? (
+                    <img
+                      src={profile.avatar}
+                      alt={profile.username}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <img src="/images/ICH.svg" className="h-full w-full object-cover" />
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
@@ -302,6 +306,7 @@ export default function Profile() {
                   <img
                     src={post.image}
                     alt={post.caption || "post"}
+                    loading="lazy"
                     className="h-full w-full object-cover"
                   />
                 ) : null}
@@ -328,6 +333,20 @@ export default function Profile() {
               ...prev,
               posts: Math.max((prev.posts || 0) - 1, 0),
             }));
+          }}
+          onEdit={(post) => setEditPost(post)}
+        />
+      ) : null}
+
+      {isDesktop && editPost ? (
+        <PostCreateModal
+          post={editPost}
+          onClose={() => setEditPost(null)}
+          onUpdated={(updated) => {
+            setPosts((prev) =>
+              prev.map((p) => (p._id === updated._id ? { ...p, ...updated } : p))
+            );
+            setEditPost(null);
           }}
         />
       ) : null}

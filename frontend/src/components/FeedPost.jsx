@@ -1,3 +1,5 @@
+import timeAgo from "../lib/timeAgo.js";
+
 export default function FeedPost({
   post,
   onToggleLike,
@@ -12,26 +14,24 @@ export default function FeedPost({
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 overflow-hidden rounded-full bg-[#DBDBDB]">
-            {post.authorId?.avatar ? (
-              <img
-                src={post.authorId.avatar}
-                alt={post.authorId.username || "author"}
-                className="h-full w-full object-cover"
-              />
-            ) : null}
+            <img
+              src={post.authorId?.avatar || "/images/ICH.svg"}
+              alt={post.authorId?.username || "author"}
+              className="h-full w-full object-cover"
+            />
           </div>
           <div>
             <div className="text-[14px] font-semibold text-[#262626]">
               {post.authorId?.username || "unknown"}
             </div>
-            <div className="text-[12px] text-[#8E8E8E]">2 weeks ago</div>
+            <div className="text-[12px] text-[#8E8E8E]">{timeAgo(post.createdAt)}</div>
           </div>
         </div>
       </div>
 
       <div className="aspect-square md:aspect-auto w-full bg-[#F2F2F2] md:h-[504px]">
         {post.image && (
-          <img src={post.image} alt="" className="h-full w-full object-cover" />
+          <img src={post.image} alt="" loading="lazy" className="h-full w-full object-cover" />
         )}
       </div>
 
