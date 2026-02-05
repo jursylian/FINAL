@@ -84,7 +84,7 @@ export default function PostCreateContent({ onClose, onCreated, showBack }) {
   const shareDisabled = !file || saving;
 
   return (
-    <div className="w-full  bg-blue-500">
+    <div className="w-full bg-white">
       <div className="flex items-center justify-between border-b border-[#DBDBDB] px-5 py-3">
         <div className="flex items-center gap-3">
           {showBack ? (
