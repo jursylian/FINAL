@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
+import { EXPLORE_LIMIT } from "../lib/constants.js";
 import PostModal from "../components/PostModal.jsx";
+import PostCreateModal from "../components/PostCreateModal.jsx";
 import useIsDesktop from "../lib/useIsDesktop.js";
 
 const TILE_AREAS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
@@ -14,6 +16,7 @@ export default function Explore() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modalPostId, setModalPostId] = useState(null);
+  const [editPost, setEditPost] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -21,7 +24,7 @@ export default function Explore() {
       setLoading(true);
       setError(null);
       try {
-        const data = await request("/explore/posts?limit=30");
+        const data = await request(`/explore/posts?limit=${EXPLORE_LIMIT}`);
         if (mounted) {
           setItems(data.items || []);
         }
@@ -92,6 +95,7 @@ export default function Explore() {
                   <img
                     src={post.image}
                     alt={post.caption || "post"}
+                    loading="lazy"
                     className="h-full w-full object-cover"
                   />
                 ) : null}
@@ -106,6 +110,20 @@ export default function Explore() {
           postId={modalPostId}
           onClose={() => setModalPostId(null)}
           onDeleted={(id) => setItems((prev) => prev.filter((p) => p._id !== id))}
+          onEdit={(post) => setEditPost(post)}
+        />
+      ) : null}
+
+      {isDesktop && editPost ? (
+        <PostCreateModal
+          post={editPost}
+          onClose={() => setEditPost(null)}
+          onUpdated={(updated) => {
+            setItems((prev) =>
+              prev.map((p) => (p._id === updated._id ? { ...p, ...updated } : p))
+            );
+            setEditPost(null);
+          }}
         />
       ) : null}
     </div>

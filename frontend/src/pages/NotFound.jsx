@@ -84,7 +84,7 @@ export default function NotFound() {
           <span>Create</span>
         </div>
         <div className="pb-3 text-center text-[11px] text-[#737373]">
-          © 2024 ICHgram
+          © {new Date().getFullYear()} ICHgram
         </div>
       </footer>
     </div>

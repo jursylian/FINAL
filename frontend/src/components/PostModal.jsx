@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
+import { DEFAULT_LIMIT } from "../lib/constants.js";
 import { ModalStackRoot, ModalWindow } from "./ModalShell.jsx";
 import UserAvatar from "./UserAvatar.jsx";
 
-export default function PostModal({ postId, onClose, onDeleted }) {
+export default function PostModal({ postId, onClose, onDeleted, onEdit }) {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [stats, setStats] = useState({ likes: 0, liked: false });
@@ -17,10 +18,6 @@ export default function PostModal({ postId, onClose, onDeleted }) {
   const [likeLoading, setLikeLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [editCaption, setEditCaption] = useState("");
-  const [editComment, setEditComment] = useState("");
-  const [editSaving, setEditSaving] = useState(false);
   const [error, setError] = useState(null);
   const [actionsOpen, setActionsOpen] = useState(false);
 
@@ -41,7 +38,6 @@ export default function PostModal({ postId, onClose, onDeleted }) {
               liked: Boolean(data.stats.liked),
             });
           }
-          setEditCaption(data.post?.caption || "");
         }
       } catch (err) {
         if (mounted) setError(err.message || "Unable to load the post.");
@@ -52,7 +48,7 @@ export default function PostModal({ postId, onClose, onDeleted }) {
 
     async function loadComments() {
       try {
-        const data = await request(`/posts/${postId}/comments?limit=50`);
+        const data = await request(`/posts/${postId}/comments?limit=${DEFAULT_LIMIT}`);
         if (mounted) {
           setComments(data.items || []);
           setCommentsTotal(typeof data.total === "number" ? data.total : 0);
@@ -125,44 +121,6 @@ export default function PostModal({ postId, onClose, onDeleted }) {
     }
   }
 
-  async function handleEditSave() {
-    if (editSaving) return;
-    setEditSaving(true);
-    setError(null);
-    try {
-      const trimmedCaption = editCaption.trim();
-      const trimmedComment = editComment.trim();
-
-      if (post && trimmedCaption !== String(post.caption || "")) {
-        const data = await request(`/posts/${postId}`, {
-          method: "PATCH",
-          body: JSON.stringify({ caption: trimmedCaption }),
-        });
-        if (data?.post) {
-          setPost(data.post);
-        }
-      }
-
-      if (trimmedComment) {
-        const data = await request(`/posts/${postId}/comments`, {
-          method: "POST",
-          body: JSON.stringify({ text: trimmedComment }),
-        });
-        if (data.comment) {
-          setComments((prev) => [data.comment, ...prev]);
-          setCommentsTotal((prev) => prev + 1);
-        }
-      }
-
-      setEditComment("");
-      setEditOpen(false);
-    } catch (err) {
-      setError(err.message || "Unable to update the post.");
-    } finally {
-      setEditSaving(false);
-    }
-  }
-
   async function handleDelete() {
     if (deleteLoading) return;
     setDeleteLoading(true);
@@ -180,10 +138,6 @@ export default function PostModal({ postId, onClose, onDeleted }) {
   }
 
   function handleOverlayClose() {
-    if (editOpen) {
-      setEditOpen(false);
-      return;
-    }
     if (actionsOpen) {
       setActionsOpen(false);
       return;
@@ -214,7 +168,7 @@ export default function PostModal({ postId, onClose, onDeleted }) {
           )}
             </div>
 
-            <div className="flex w-full md:w-[420px] flex-col border-l border-[#DBDBDB] min-h-0 flex-1">
+            <div className="flex w-full md:w-[424px] flex-col border-l border-[#DBDBDB] min-h-0 shrink-0">
           <div className="flex items-center gap-3 border-b border-[#DBDBDB] px-5 py-4">
             <UserAvatar user={post?.authorId} size={36} />
             <div className="text-sm font-semibold">
@@ -341,7 +295,8 @@ export default function PostModal({ postId, onClose, onDeleted }) {
               type="button"
               onClick={() => {
                 setActionsOpen(false);
-                setEditOpen(true);
+                onClose?.();
+                onEdit?.(post);
               }}
               className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
             >
@@ -379,84 +334,6 @@ export default function PostModal({ postId, onClose, onDeleted }) {
         </div>
       ) : null}
 
-      {editOpen ? (
-        <div className="absolute inset-0 z-[92] flex items-start justify-center pointer-events-none pt-6">
-          <div
-            className="pointer-events-auto w-[720px] max-w-[92vw] overflow-hidden rounded-2xl bg-white shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-[#EFEFEF] px-6 py-4">
-              <button
-                type="button"
-                onClick={() => setEditOpen(false)}
-                className="text-sm text-[#262626]"
-              >
-                Cancel
-              </button>
-              <div className="text-sm font-semibold text-[#262626]">
-                Edit info
-              </div>
-              <button
-                type="button"
-                onClick={handleEditSave}
-                disabled={editSaving}
-                className="text-sm font-semibold text-[#0095F6] disabled:opacity-60"
-              >
-                Done
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 gap-0 md:grid-cols-[1fr_320px]">
-              <div className="h-[360px] bg-black md:h-[520px]">
-                {post?.image ? (
-                  <img
-                    src={post.image}
-                    alt={post.caption || "post"}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-white/70">
-                    No image
-                  </div>
-                )}
-              </div>
-
-              <div className="flex h-full flex-col border-l border-[#EFEFEF] bg-white">
-                <div className="flex items-center gap-3 border-b border-[#EFEFEF] px-5 py-4">
-                  <UserAvatar user={post?.authorId} size={36} />
-                  <div className="text-sm font-semibold">
-                    {post?.authorId?.username || "user"}
-                  </div>
-                </div>
-
-                <div className="flex-1 space-y-4 overflow-auto px-5 py-4">
-                  <div className="text-xs text-[#8E8E8E]">Caption</div>
-                  <textarea
-                    value={editCaption}
-                    onChange={(e) => setEditCaption(e.target.value)}
-                    maxLength={2200}
-                    rows={6}
-                    className="w-full resize-none rounded-xl border border-[#DBDBDB] px-3 py-2 text-sm text-[#262626] outline-none focus:border-[#A8A8A8]"
-                  />
-                  <div className="text-right text-[12px] text-[#C7C7C7]">
-                    {editCaption.length} / 2200
-                  </div>
-
-                  <div className="mt-6 text-xs text-[#8E8E8E]">
-                    Add a comment
-                  </div>
-                  <input
-                    value={editComment}
-                    onChange={(e) => setEditComment(e.target.value)}
-                    placeholder="Add a comment..."
-                    className="w-full rounded-xl border border-[#DBDBDB] px-3 py-2 text-sm text-[#262626] outline-none placeholder:text-[#8E8E8E] focus:border-[#A8A8A8]"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </ModalStackRoot>
   );
 }

@@ -1,29 +1,7 @@
-import mongoose from "mongoose";
 import Post from "../models/Post.js";
-import Follow from "../models/Follow.js";
-
-function toObjectId(value) {
-  if (!value) {
-    return null;
-  }
-  if (value instanceof mongoose.Types.ObjectId) {
-    return value;
-  }
-  if (mongoose.Types.ObjectId.isValid(value)) {
-    return new mongoose.Types.ObjectId(value);
-  }
-  return null;
-}
-
-async function getFollowingIds(userId) {
-  if (!userId) {
-    return [];
-  }
-  const follows = await Follow.find({ followerId: userId })
-    .select("followingId")
-    .lean();
-  return follows.map((item) => item.followingId);
-}
+import { handleError } from "../utils/errorHandler.js";
+import { toObjectId } from "../utils/objectId.js";
+import { getFollowingIds } from "../utils/followingIds.js";
 
 export async function listExplorePosts(req, res) {
   try {
@@ -34,7 +12,7 @@ export async function listExplorePosts(req, res) {
       ? [...followingIds, currentUserId]
       : [];
     const match = excludedIds.length
-      ? { authorId: { $nin: excludedIds } } // Explore: exclude following + me
+      ? { authorId: { $nin: excludedIds } }
       : null;
 
     const pipeline = [
@@ -49,7 +27,6 @@ export async function listExplorePosts(req, res) {
 
     return res.status(200).json({ items: populated });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return handleError(err, res);
   }
 }

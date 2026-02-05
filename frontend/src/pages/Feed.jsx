@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { request } from "../lib/apiClient.js";
+import { DEFAULT_LIMIT } from "../lib/constants.js";
 import FeedPost from "../components/FeedPost.jsx";
 import PostModal from "../components/PostModal.jsx";
+import PostCreateModal from "../components/PostCreateModal.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import useIsDesktop from "../lib/useIsDesktop.js";
 
@@ -15,6 +17,7 @@ export default function Feed() {
   const [loading, setLoading] = useState(true);
   const [likeLoadingIds, setLikeLoadingIds] = useState(new Set());
   const [modalPostId, setModalPostId] = useState(null);
+  const [editPost, setEditPost] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -30,7 +33,7 @@ export default function Feed() {
         return;
       }
       try {
-        const data = await request("/posts?limit=50");
+        const data = await request(`/posts?limit=${DEFAULT_LIMIT}`);
         if (mounted) setItems(data.items || []);
       } catch (err) {
         if (mounted) setError(err.message || "Failed to load feed.");
@@ -152,6 +155,20 @@ export default function Feed() {
           postId={modalPostId}
           onClose={() => setModalPostId(null)}
           onDeleted={(id) => setItems((prev) => prev.filter((p) => p._id !== id))}
+          onEdit={(post) => setEditPost(post)}
+        />
+      ) : null}
+
+      {isDesktop && editPost ? (
+        <PostCreateModal
+          post={editPost}
+          onClose={() => setEditPost(null)}
+          onUpdated={(updated) => {
+            setItems((prev) =>
+              prev.map((p) => (p._id === updated._id ? { ...p, ...updated } : p))
+            );
+            setEditPost(null);
+          }}
         />
       ) : null}
     </div>

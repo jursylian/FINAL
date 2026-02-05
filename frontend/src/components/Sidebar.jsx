@@ -19,7 +19,7 @@ export default function Sidebar({
   const labelClass = "text-[14px] text-[#262626]";
 
   return (
-    <aside className="sticky top-0 z-50 h-screen w-[245px] border-r border-[#DBDBDB] bg-white">
+    <aside className="sticky top-0 z-50 h-screen md:h-[calc(100vh-158px)] w-[245px] border-r border-[#DBDBDB] bg-white overflow-hidden">
       <div className="flex h-full flex-col px-5 py-6">
         <div className="mb-10">
           <img

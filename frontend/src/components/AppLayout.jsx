@@ -5,6 +5,7 @@ import { request } from "../lib/apiClient.js";
 import Sidebar from "./Sidebar.jsx";
 import NotificationsList from "./NotificationsList.jsx";
 import PostCreateModal from "./PostCreateModal.jsx";
+import UserAvatar from "./UserAvatar.jsx";
 import useIsDesktop from "../lib/useIsDesktop.js";
 
 export default function AppLayout() {
@@ -26,6 +27,10 @@ export default function AppLayout() {
       navigate(".", { replace: true, state: null });
     }
   }, [location.state, navigate]);
+
+  useEffect(() => {
+    setPanel(null);
+  }, [location.pathname]);
 
   function togglePanel(type) {
     if (!isDesktop && type === "notifications") {
@@ -106,7 +111,10 @@ export default function AppLayout() {
               }
               setMobileMenuOpen(false);
             }}
-            onNavigate={() => setMobileMenuOpen(false)}
+            onNavigate={() => {
+              setPanel(null);
+              setMobileMenuOpen(false);
+            }}
           />
         </div>
 
@@ -159,7 +167,7 @@ function LeftPanelFixed({ open, title, children }) {
   return (
     <div
       className={[
-        "hidden md:block fixed top-0 left-[245px] z-40 h-screen w-[397px]",
+        "hidden md:block fixed top-0 left-[245px] z-40 h-[calc(100vh-158px)] w-[397px]",
         "bg-white overflow-hidden",
         "rounded-tr-[16px] rounded-br-[16px]",
         "transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-transform",
@@ -179,12 +187,36 @@ function SearchPanel() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [initialLoaded, setInitialLoaded] = useState(false);
 
+  // Load initial users when panel opens
+  useEffect(() => {
+    if (initialLoaded) return;
+    let mounted = true;
+
+    async function loadInitial() {
+      setLoading(true);
+      try {
+        const data = await request("/search/users?limit=10");
+        if (mounted) {
+          setItems(data.items || []);
+          setInitialLoaded(true);
+        }
+      } catch (err) {
+        // ignore initial load error
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    loadInitial();
+    return () => { mounted = false; };
+  }, [initialLoaded]);
+
+  // Search when query changes
   useEffect(() => {
     const query = q.trim();
     if (!query) {
-      setItems([]);
-      setError(null);
       return;
     }
 
@@ -220,6 +252,9 @@ function SearchPanel() {
       {error ? (
         <div className="mt-3 text-[12px] text-red-500">{error}</div>
       ) : null}
+      {!loading && !error && items.length === 0 && q.trim() && (
+        <div className="mt-3 text-[12px] text-[#8E8E8E]">No users found</div>
+      )}
       <div className="mt-4 flex flex-col gap-3">
         {items.map((u) => (
           <Link
@@ -227,7 +262,7 @@ function SearchPanel() {
             to={`/profile/${u._id}`}
             className="flex items-center gap-3"
           >
-            <div className="h-10 w-10 rounded-full bg-[#DBDBDB]" />
+            <UserAvatar user={u} size={40} />
             <div>
               <div className="text-[13px] font-semibold text-[#262626]">
                 {u.username}
@@ -253,8 +288,8 @@ function FooterNav({
     "text-[12px] text-[#737373] hover:text-[#262626] transition";
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white h-[158px] md:h-auto">
-      <div className="flex flex-col items-center px-4 md:px-6 md:py-6">
+    <footer className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white h-[158px]">
+      <div className="flex flex-col items-center px-4 md:px-6 md:pb-6">
         <div className="flex h-[44px] w-full items-center justify-between md:w-auto md:gap-8">
           <button onClick={onHome} className={linkClass}>
             Home
@@ -276,7 +311,7 @@ function FooterNav({
           </button>
         </div>
         <div className="mt-[45px] text-center text-[12px] text-[#737373]">
-          © 2024 ICHgram
+          © {new Date().getFullYear()} ICHgram
         </div>
       </div>
     </footer>

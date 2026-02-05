@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { request } from "../lib/apiClient.js";
+import { authInputWideClass, authButtonWideClass } from "../lib/authStyles.js";
 
 export default function Reset() {
   const logoImage = "/images/Logo.svg";
@@ -34,20 +35,6 @@ export default function Reset() {
       setLoading(false);
     }
   }
-
-  const inputClass = [
-    "w-[300px] h-[40px] rounded-[3px]",
-    "border border-[#DBDBDB] bg-[#FAFAFA] px-3",
-    "text-[12px] text-black placeholder:text-[#C7C7C7]",
-    "focus:border-[#A8A8A8] focus:bg-white focus:outline-none",
-  ].join(" ");
-
-  const buttonClass = [
-    "w-[300px] h-[40px] rounded-[8px]",
-    "bg-[#0095F6] text-[14px] font-semibold text-white",
-    "transition hover:bg-[#1877F2] active:scale-[0.99]",
-    "disabled:cursor-not-allowed disabled:opacity-60",
-  ].join(" ");
 
   return (
     <div className="min-h-screen bg-white">
@@ -86,7 +73,7 @@ export default function Reset() {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="Email or Username"
-              className={inputClass}
+              className={authInputWideClass}
             />
 
             {sent && (
@@ -104,7 +91,7 @@ export default function Reset() {
             <button
               type="submit"
               disabled={loading}
-              className={`mt-3 ${buttonClass}`}
+              className={`mt-3 ${authButtonWideClass}`}
             >
               {loading ? "Sending..." : "Reset your password"}
             </button>

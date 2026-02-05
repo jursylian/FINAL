@@ -1,12 +1,5 @@
 import Notification from "../models/Notification.js";
-
-function handleNotificationError(err, res) {
-  if (err?.name === "ValidationError") {
-    return res.status(400).json({ message: err.message, details: err.errors });
-  }
-  console.error(err);
-  return res.status(500).json({ message: "Internal Server Error" });
-}
+import { handleError } from "../utils/errorHandler.js";
 
 export async function listNotifications(req, res) {
   try {
@@ -28,7 +21,7 @@ export async function listNotifications(req, res) {
 
     return res.status(200).json({ items });
   } catch (err) {
-    return handleNotificationError(err, res);
+    return handleError(err, res);
   }
 }
 
@@ -51,6 +44,6 @@ export async function markNotificationRead(req, res) {
 
     return res.status(200).json({ notification });
   } catch (err) {
-    return handleNotificationError(err, res);
+    return handleError(err, res);
   }
 }

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { authInputClass, authButtonClass } from "../lib/authStyles.js";
 
 export default function Register() {
   const logoImage = "/images/Logo.svg";
@@ -45,20 +46,6 @@ export default function Register() {
     }
   }
 
-  const inputClass = [
-    "w-[268px] h-[38px] rounded-[3px]",
-    "border border-[#DBDBDB] bg-[#FAFAFA] px-3",
-    "text-[12px] text-black placeholder:text-[#737373]",
-    "focus:border-[#A8A8A8] focus:bg-white focus:outline-none",
-  ].join(" ");
-
-  const buttonClass = [
-    "w-[268px] h-[38px] rounded-[8px]",
-    "bg-[#0095F6] text-[14px] font-semibold text-white",
-    "transition hover:bg-[#1877F2] active:scale-[0.99]",
-    "disabled:cursor-not-allowed disabled:opacity-60",
-  ].join(" ");
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-4">
       <div className="flex flex-col items-center">
@@ -90,7 +77,7 @@ export default function Register() {
                     message: "Enter a valid email.",
                   },
                 })}
-                className={inputClass}
+                className={authInputClass}
               />
 
               <input
@@ -99,7 +86,7 @@ export default function Register() {
                 {...rhfRegister("name", {
                   maxLength: { value: 80, message: "Max 80 characters." },
                 })}
-                className={inputClass}
+                className={authInputClass}
               />
 
               <input
@@ -110,7 +97,7 @@ export default function Register() {
                   minLength: { value: 3, message: "Min 3 characters." },
                   maxLength: { value: 30, message: "Max 30 characters." },
                 })}
-                className={inputClass}
+                className={authInputClass}
               />
 
               <input
@@ -120,7 +107,7 @@ export default function Register() {
                   required: "Password is required.",
                   minLength: { value: 8, message: "Min 8 characters." },
                 })}
-                className={inputClass}
+                className={authInputClass}
               />
             </div>
 
@@ -168,7 +155,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`mt-4 ${buttonClass}`}
+              className={`mt-4 ${authButtonClass}`}
             >
               {isSubmitting ? "Signing up..." : "Sign up"}
             </button>

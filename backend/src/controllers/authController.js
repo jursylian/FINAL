@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
+import { toPublicUser } from "../utils/publicUser.js";
+import { handleError } from "../utils/errorHandler.js";
 
 const buildToken = (userId) => {
   const secret = process.env.JWT_SECRET;
@@ -13,39 +15,14 @@ const buildToken = (userId) => {
   return jwt.sign({ sub: userId }, secret, { expiresIn });
 };
 
-const toPublicUser = (userDoc) => {
-  const obj = userDoc.toObject();
-  delete obj.password;
-  delete obj.resetPasswordTokenHash;
-  delete obj.resetPasswordExpiresAt;
-  return obj;
-};
-
 const handleAuthError = (err, res) => {
-  console.error("AUTH_ERROR:", err);
-
   if (err?.code === "JWT_SECRET_MISSING") {
     return res.status(500).json({ message: "JWT_SECRET is not set" });
   }
-
-  if (err?.name === "ValidationError") {
-    return res.status(400).json({
-      message: err.message,
-      details: err.errors,
-    });
-  }
-
   if (err?.code === 11000) {
-    return res.status(409).json({
-      message: "Email or username already in use",
-    });
+    return res.status(409).json({ message: "Email or username already in use" });
   }
-
-  return res.status(500).json({
-    message: err?.message || "Internal Server Error",
-    name: err?.name,
-    code: err?.code,
-  });
+  return handleError(err, res);
 };
 
 // -------- reset helpers --------
@@ -123,11 +100,15 @@ const login = async (req, res) => {
 };
 
 const me = async (req, res) => {
-  const user = await User.findById(req.userId).select("-password");
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
+  try {
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({ user: toPublicUser(user) });
+  } catch (err) {
+    return handleAuthError(err, res);
   }
-  return res.status(200).json({ user: toPublicUser(user) });
 };
 
 // POST /auth/forgot-password

@@ -58,6 +58,34 @@ Headers:
 Ошибки:
 - 401: нет/невалидный токен
 
+### POST `/auth/forgot-password`
+Описание: запрос на сброс пароля.
+
+Body (JSON):
+- `identifier` (string, required) — email или username
+
+Ответ 200:
+- `message` (string)
+
+Ошибки:
+- 400: валидация
+
+Примечание: всегда возвращает успех для предотвращения утечки информации о пользователях.
+
+### POST `/auth/reset-password`
+Описание: установка нового пароля по токену.
+
+Body (JSON):
+- `token` (string, required) — токен из письма
+- `password` (string, required) — новый пароль
+
+Ответ 200:
+- `message` (string)
+
+Ошибки:
+- 400: невалидный или истёкший токен
+- 400: валидация пароля
+
 ## Users / Profile
 
 ### GET `/users/:id`

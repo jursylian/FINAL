@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { authInputClass, authButtonClass } from "../lib/authStyles.js";
 
 export default function Login() {
   const heroImage = "/images/Hero.png";
@@ -35,20 +36,6 @@ export default function Login() {
     }
   }
 
-  const inputClass = [
-    "w-[268px] h-[38px] rounded-[3px]",
-    "border border-[#DBDBDB] bg-[#FAFAFA] px-3",
-    "text-[12px] text-black placeholder:text-[#737373]",
-    "focus:border-[#A8A8A8] focus:bg-white focus:outline-none",
-  ].join(" ");
-
-  const buttonClass = [
-    "w-[268px] h-[38px] rounded-[8px]",
-    "bg-[#0095F6] text-[14px] font-semibold text-white",
-    "transition hover:bg-[#1877F2] active:scale-[0.99]",
-    "disabled:cursor-not-allowed disabled:opacity-60",
-  ].join(" ");
-
   return (
     <div className="flex min-h-screen justify-center pt-[88px]">
       <div className="flex gap-8 h-max ">
@@ -81,7 +68,7 @@ export default function Login() {
                   {...register("login", {
                     required: "Enter username or email.",
                   })}
-                  className={inputClass}
+                  className={authInputClass}
                 />
 
                 <input
@@ -91,7 +78,7 @@ export default function Login() {
                     required: "Enter password.",
                     minLength: { value: 8, message: "Min 8 characters." },
                   })}
-                  className={inputClass}
+                  className={authInputClass}
                 />
               </div>
 
@@ -110,7 +97,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`mt-4 ${buttonClass}`}
+                className={`mt-4 ${authButtonClass}`}
               >
                 {isSubmitting ? "Logging in..." : "Log in"}
               </button>
