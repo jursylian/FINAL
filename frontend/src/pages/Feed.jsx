@@ -108,50 +108,51 @@ export default function Feed() {
   return (
     <div className="w-full px-4 md:px-10 py-10 pb-[140px]">
       <div className="mx-auto w-full max-w-[980px] md:translate-x-[-122px]">
-      {loading && (
-        <div className="text-[14px] text-[#737373]">Loading...</div>
-      )}
+        {loading && (
+          <div className="text-[14px] text-[#737373]">Loading...</div>
+        )}
 
-      {error && (
-        <div className="border border-[#DBDBDB] bg-white p-3 text-[14px] text-red-500">
-          {error}
+        {error && (
+          <div className="border border-[#DBDBDB] bg-white p-3 text-[14px] text-red-500">
+            {error}
+          </div>
+        )}
+
+        <div className="mt-6 grid grid-cols-1 gap-x-[60px] gap-y-[70px] lg:grid-cols-2">
+          {items.map((post) => (
+            <FeedPost
+              key={post._id}
+              post={post}
+              likeLoading={likeLoadingIds.has(post._id)}
+              onToggleLike={handleToggleLike}
+              onOpenComments={handleOpenComments}
+            />
+          ))}
         </div>
-      )}
 
-      <div className="mt-6 grid grid-cols-1 gap-x-[60px] gap-y-[70px] lg:grid-cols-2">
-        {items.map((post) => (
-          <FeedPost
-            key={post._id}
-            post={post}
-            likeLoading={likeLoadingIds.has(post._id)}
-            onToggleLike={handleToggleLike}
-            onOpenComments={handleOpenComments}
+        <div className="mt-24 flex flex-col items-center gap-3">
+          <img
+            src="/images/Done.svg"
+            alt="Done"
+            className="h-23 w-23 cursor-pointer"
           />
-        ))}
-      </div>
-
-      <div className="mt-24 flex flex-col items-center gap-3">
-        <img
-          src="/images/Done.svg"
-          alt="Done"
-          className="h-23 w-23 cursor-pointer"
-        />
-        <div className="text-center">
-          <div className="text-[14px] font-semibold text-[#262626]">
-            You're all caught up
-          </div>
-          <div className="text-[14px] text-[#8E8E8E]">
-            You've seen all new posts.
+          <div className="text-center">
+            <div className="text-[14px] font-semibold text-[#262626]">
+              You've seen all the updates
+            </div>
+            <div className="text-[14px] text-[#8E8E8E]">
+              You have viewed all new publications
+            </div>
           </div>
         </div>
-      </div>
-
       </div>
       {isDesktop && modalPostId ? (
         <PostModal
           postId={modalPostId}
           onClose={() => setModalPostId(null)}
-          onDeleted={(id) => setItems((prev) => prev.filter((p) => p._id !== id))}
+          onDeleted={(id) =>
+            setItems((prev) => prev.filter((p) => p._id !== id))
+          }
         />
       ) : null}
     </div>
