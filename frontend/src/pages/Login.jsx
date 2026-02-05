@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 export default function Login() {
@@ -9,37 +10,31 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [form, setForm] = useState({ login: "", password: "" });
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: { login: "", password: "" },
+  });
 
-  function updateField(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function onSubmit(data) {
     setError(null);
-    setLoading(true);
-
     try {
       await login({
-        email: form.login.includes("@") ? form.login : undefined,
-        username: !form.login.includes("@") ? form.login : undefined,
-        password: form.password,
+        email: data.login.includes("@") ? data.login : undefined,
+        username: !data.login.includes("@") ? data.login : undefined,
+        password: data.password,
       });
       navigate("/", { replace: true });
     } catch (err) {
       if (err.status === 400) setError("Enter username/email and password.");
       else if (err.status === 401) setError("Invalid login or password.");
       else setError(err.message || "Unable to sign in.");
-    } finally {
-      setLoading(false);
     }
   }
 
-  // Figma sizes (inputs/buttons fixed)
   const inputClass = [
     "w-[268px] h-[38px] rounded-[3px]",
     "border border-[#DBDBDB] bg-[#FAFAFA] px-3",
@@ -76,28 +71,35 @@ export default function Login() {
             </div>
 
             <form
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmit(onSubmit)}
               className="flex flex-col items-center"
             >
               <div className="flex flex-col gap-2">
                 <input
-                  name="login"
                   type="text"
                   placeholder="Username, or email"
-                  value={form.login}
-                  onChange={updateField}
+                  {...register("login", {
+                    required: "Enter username or email.",
+                  })}
                   className={inputClass}
                 />
 
                 <input
-                  name="password"
                   type="password"
                   placeholder="Password"
-                  value={form.password}
-                  onChange={updateField}
+                  {...register("password", {
+                    required: "Enter password.",
+                    minLength: { value: 8, message: "Min 8 characters." },
+                  })}
                   className={inputClass}
                 />
               </div>
+
+              {(errors.login || errors.password) && (
+                <div className="mt-3 w-[268px] text-center text-[12px] text-red-500">
+                  {errors.login?.message || errors.password?.message}
+                </div>
+              )}
 
               {error && (
                 <div className="mt-3 w-[268px] text-center text-[12px] text-red-500">
@@ -107,10 +109,10 @@ export default function Login() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isSubmitting}
                 className={`mt-4 ${buttonClass}`}
               >
-                {loading ? "Logging in..." : "Log in"}
+                {isSubmitting ? "Logging in..." : "Log in"}
               </button>
             </form>
 

@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { request } from "../lib/apiClient.js";
 import FeedPost from "../components/FeedPost.jsx";
 import PostModal from "../components/PostModal.jsx";
+import { useAuth } from "../auth/AuthContext.jsx";
+import useIsDesktop from "../lib/useIsDesktop.js";
 
 export default function Feed() {
+  const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
+  const { token } = useAuth();
   const [items, setItems] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +22,13 @@ export default function Feed() {
     async function loadFeed() {
       setLoading(true);
       setError(null);
+      if (!token) {
+        if (mounted) {
+          setItems([]);
+          setLoading(false);
+        }
+        return;
+      }
       try {
         const data = await request("/posts?limit=50");
         if (mounted) setItems(data.items || []);
@@ -30,6 +43,19 @@ export default function Feed() {
     return () => {
       mounted = false;
     };
+  }, [token]);
+
+  useEffect(() => {
+    function handleCreated(event) {
+      const created = event.detail;
+      if (!created?._id) return;
+      setItems((prev) => {
+        if (prev.some((post) => post._id === created._id)) return prev;
+        return [created, ...prev];
+      });
+    }
+    window.addEventListener("post:created", handleCreated);
+    return () => window.removeEventListener("post:created", handleCreated);
   }, []);
 
   function setLikeLoading(postId, value) {
@@ -39,6 +65,15 @@ export default function Feed() {
       else next.delete(postId);
       return next;
     });
+  }
+
+  function handleOpenComments(id) {
+    if (!id) return;
+    if (isDesktop) {
+      setModalPostId(id);
+    } else {
+      navigate(`/post/${id}`);
+    }
   }
 
   async function handleToggleLike(postId) {
@@ -71,7 +106,8 @@ export default function Feed() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[980px] px-10 py-10 pb-[140px]">
+    <div className="w-full px-4 md:px-10 py-10 pb-[140px]">
+      <div className="mx-auto w-full max-w-[980px] md:translate-x-[-122px]">
       {loading && (
         <div className="text-[14px] text-[#737373]">Loading...</div>
       )}
@@ -89,7 +125,7 @@ export default function Feed() {
             post={post}
             likeLoading={likeLoadingIds.has(post._id)}
             onToggleLike={handleToggleLike}
-            onOpenComments={(id) => setModalPostId(id)}
+            onOpenComments={handleOpenComments}
           />
         ))}
       </div>
@@ -102,16 +138,21 @@ export default function Feed() {
         />
         <div className="text-center">
           <div className="text-[14px] font-semibold text-[#262626]">
-            You have seen all the updates
+            You're all caught up
           </div>
           <div className="text-[14px] text-[#8E8E8E]">
-            You have viewed all new publications
+            You've seen all new posts.
           </div>
         </div>
       </div>
 
-      {modalPostId ? (
-        <PostModal postId={modalPostId} onClose={() => setModalPostId(null)} />
+      </div>
+      {isDesktop && modalPostId ? (
+        <PostModal
+          postId={modalPostId}
+          onClose={() => setModalPostId(null)}
+          onDeleted={(id) => setItems((prev) => prev.filter((p) => p._id !== id))}
+        />
       ) : null}
     </div>
   );

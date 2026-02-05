@@ -1,24 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
 import PostModal from "../components/PostModal.jsx";
+import useIsDesktop from "../lib/useIsDesktop.js";
 
 const TILE_AREAS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
 
-function useIsDesktop() {
-  const [desktop, setDesktop] = useState(() =>
-    window.matchMedia("(min-width: 768px)").matches,
-  );
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    const handler = (e) => setDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return desktop;
-}
-
 export default function Explore() {
+  const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const [items, setItems] = useState([]);
   const [error, setError] = useState(null);
@@ -84,7 +74,13 @@ export default function Explore() {
               <button
                 key={post._id}
                 type="button"
-                onClick={() => setModalPostId(post._id)}
+                onClick={() => {
+                  if (isDesktop) {
+                    setModalPostId(post._id);
+                  } else {
+                    navigate(`/post/${post._id}`);
+                  }
+                }}
                 className="overflow-hidden bg-[#F2F2F2] aspect-square md:aspect-auto"
                 style={
                   isDesktop && TILE_AREAS[index]
@@ -105,8 +101,12 @@ export default function Explore() {
         </div>
       </div>
 
-      {modalPostId ? (
-        <PostModal postId={modalPostId} onClose={() => setModalPostId(null)} />
+      {isDesktop && modalPostId ? (
+        <PostModal
+          postId={modalPostId}
+          onClose={() => setModalPostId(null)}
+          onDeleted={(id) => setItems((prev) => prev.filter((p) => p._id !== id))}
+        />
       ) : null}
     </div>
   );

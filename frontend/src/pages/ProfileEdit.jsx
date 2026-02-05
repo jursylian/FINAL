@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
 
 import { request } from "../lib/apiClient.js";
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -10,18 +11,26 @@ export default function ProfileEdit() {
   const { user: me, updateUser } = useAuth();
   const fileRef = useRef(null);
 
-  const [form, setForm] = useState({
-    name: "",
-    username: "",
-    email: "",
-    bio: "",
-    website: "",
-  });
   const [avatarFile, setAvatarFile] = useState(null);
   const [currentAvatar, setCurrentAvatar] = useState(null);
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    clearErrors,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      name: "",
+      username: "",
+      email: "",
+      bio: "",
+      website: "",
+    },
+  });
 
   const isOwner = me && String(me._id) === String(id);
   const avatarPreview = useMemo(
@@ -30,16 +39,18 @@ export default function ProfileEdit() {
   );
 
   const avatarSrc = avatarPreview || currentAvatar || "/images/ICH.svg";
+  const watchedUsername = watch("username");
+  const watchedBio = watch("bio");
 
   useEffect(() => {
     let mounted = true;
     async function loadProfile() {
       setLoading(true);
-      setError(null);
+      clearErrors("root");
       try {
         const data = await request(`/users/${id}`);
         if (mounted) {
-          setForm({
+          reset({
             name: data.user.name || "",
             username: data.user.username || "",
             email: data.user.email || "",
@@ -50,7 +61,7 @@ export default function ProfileEdit() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || "Failed to load profile.");
+          setError("root", { message: err.message || "Failed to load profile." });
         }
       } finally {
         if (mounted) {
@@ -72,25 +83,16 @@ export default function ProfileEdit() {
     };
   }, [avatarPreview]);
 
-  function updateField(event) {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setError(null);
-    setSaving(true);
-
+  async function onSubmit(values) {
     try {
       const data = await request(`/users/${id}`, {
         method: "PATCH",
         body: JSON.stringify({
-          name: form.name || undefined,
-          username: form.username || undefined,
-          email: form.email || undefined,
-          bio: form.bio || undefined,
-          website: form.website || undefined,
+          name: values.name || undefined,
+          username: values.username || undefined,
+          email: values.email || undefined,
+          bio: values.bio || undefined,
+          website: values.website || undefined,
         }),
       });
 
@@ -113,16 +115,14 @@ export default function ProfileEdit() {
       navigate(`/profile/${id}`, { replace: true });
     } catch (err) {
       if (err.status === 400) {
-        setError("Check the fields are correct.");
+        setError("root", { message: "Check the fields are correct." });
       } else if (err.status === 409) {
-        setError("Email or username is already taken.");
+        setError("root", { message: "Email or username is already taken." });
       } else if (err.status === 403) {
-        setError("No permission to edit this profile.");
+        setError("root", { message: "No permission to edit this profile." });
       } else {
-        setError(err.message || "Failed to save changes.");
+        setError("root", { message: err.message || "Failed to save changes." });
       }
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -140,7 +140,7 @@ export default function ProfileEdit() {
     );
   }
 
-  const bioLength = form.bio.length;
+  const bioLength = (watchedBio || "").length;
 
   return (
     <div className="px-4 py-8">
@@ -149,23 +149,23 @@ export default function ProfileEdit() {
           Edit profile
         </h1>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           {/* ===== Avatar section ===== */}
           <div className="flex items-center gap-4 rounded-2xl bg-[#EFEFEF] p-4">
             <div className="h-[56px] w-[56px] shrink-0 overflow-hidden rounded-full bg-[#DBDBDB]">
               <img
                 src={avatarSrc}
-                alt={form.username}
+                alt={watchedUsername || "profile"}
                 className="h-full w-full object-cover"
               />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[16px] font-semibold text-[#262626] truncate">
-                {form.username}
+                {watchedUsername || "profile"}
               </div>
-              {form.bio && (
+              {watchedBio && (
                 <div className="text-[14px] text-[#737373] truncate">
-                  {form.bio}
+                  {watchedBio}
                 </div>
               )}
             </div>
@@ -191,13 +191,19 @@ export default function ProfileEdit() {
               Username
             </label>
             <input
-              name="username"
               type="text"
-              value={form.username}
-              onChange={updateField}
-              required
+              {...register("username", {
+                required: "Username is required.",
+                minLength: { value: 3, message: "Min 3 characters." },
+                maxLength: { value: 30, message: "Max 30 characters." },
+              })}
               className="rounded-xl border border-[#DBDBDB] bg-white px-4 py-2.5 text-[14px] text-[#262626] outline-none transition focus:border-[#A8A8A8]"
             />
+            {errors.username?.message && (
+              <div className="text-[12px] text-red-500">
+                {errors.username.message}
+              </div>
+            )}
           </div>
 
           {/* ===== Website ===== */}
@@ -206,13 +212,21 @@ export default function ProfileEdit() {
               Website
             </label>
             <input
-              name="website"
               type="url"
-              value={form.website}
-              onChange={updateField}
               placeholder="https://"
+              {...register("website", {
+                pattern: {
+                  value: /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/.*)?$/i,
+                  message: "Enter a valid URL.",
+                },
+              })}
               className="rounded-xl border border-[#DBDBDB] bg-white px-4 py-2.5 text-[14px] text-[#262626] placeholder:text-[#C7C7C7] outline-none transition focus:border-[#A8A8A8]"
             />
+            {errors.website?.message && (
+              <div className="text-[12px] text-red-500">
+                {errors.website.message}
+              </div>
+            )}
           </div>
 
           {/* ===== About ===== */}
@@ -221,32 +235,35 @@ export default function ProfileEdit() {
               About
             </label>
             <textarea
-              name="bio"
               rows={3}
               maxLength={150}
-              value={form.bio}
-              onChange={updateField}
+              {...register("bio", {
+                maxLength: { value: 150, message: "Max 150 characters." },
+              })}
               className="resize-none rounded-xl border border-[#DBDBDB] bg-white px-4 py-2.5 text-[14px] text-[#262626] outline-none transition focus:border-[#A8A8A8]"
             />
             <div className="text-right text-[12px] text-[#C7C7C7]">
               {bioLength} / 150
             </div>
+            {errors.bio?.message && (
+              <div className="text-[12px] text-red-500">{errors.bio.message}</div>
+            )}
           </div>
 
           {/* ===== Error ===== */}
-          {error && (
+          {errors.root?.message && (
             <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-600">
-              {error}
+              {errors.root.message}
             </div>
           )}
 
           {/* ===== Submit ===== */}
           <button
             type="submit"
-            disabled={saving}
+            disabled={isSubmitting}
             className="mt-2 w-[268px] rounded-xl bg-[#0095F6] py-2.5 text-[14px] font-semibold text-white transition hover:bg-[#1877F2] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Saving..." : "Submit"}
+            {isSubmitting ? "Saving..." : "Submit"}
           </button>
         </form>
       </div>

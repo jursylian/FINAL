@@ -38,15 +38,12 @@ export default function Followers() {
   return (
     <div className="px-4 py-10">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        <Link className="text-[14px] font-semibold text-[#00376B]" to={`/profile/${id}`}>
-          ← Back to profile
-        </Link>
         <h1 className="text-[20px] font-semibold text-[#262626]">Followers</h1>
 
-        {loading ? <div className="text-[14px] text-[#737373]">Loading...</div> : null}
-        {error ? (
-          <div className="text-[14px] text-red-500">{error}</div>
+        {loading ? (
+          <div className="text-[14px] text-[#737373]">Loading...</div>
         ) : null}
+        {error ? <div className="text-[14px] text-red-500">{error}</div> : null}
 
         {!loading && !error && items.length === 0 ? (
           <div className="text-[14px] text-[#737373]">No followers yet.</div>
@@ -72,7 +69,9 @@ export default function Followers() {
                 <div className="text-[14px] font-semibold text-[#262626]">
                   {user.name || user.username}
                 </div>
-                <div className="text-[12px] text-[#8E8E8E]">@{user.username}</div>
+                <div className="text-[12px] text-[#8E8E8E]">
+                  @{user.username}
+                </div>
               </div>
             </Link>
           ))}

@@ -80,10 +80,19 @@ export default function Sidebar({
               onClick={onNavigate}
             >
               <div className="h-6 w-6 overflow-hidden rounded-full bg-[#DBDBDB]">
-                <img
-                  src="/images/ICH.svg"
-                  className="h-full w-full object-cover cursor-pointer"
-                />
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.username || "Profile"}
+                    className="h-full w-full object-cover cursor-pointer"
+                  />
+                ) : (
+                  <img
+                    src="/images/ICH.svg"
+                    alt="Profile"
+                    className="h-full w-full object-cover cursor-pointer"
+                  />
+                )}
               </div>
               <span className={labelClass}>Profile</span>
             </Link>

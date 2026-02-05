@@ -49,6 +49,7 @@
 |---|---|---|
 | **Vite** | 7.2.4 | Сборщик и dev-сервер (мгновенный HMR, быстрая сборка) |
 | **@vitejs/plugin-react** | 4.3.2 | Плагин Vite для поддержки JSX и Fast Refresh |
+| **@tailwindcss/postcss** | 4.1.18 | PostCSS-плагин Tailwind (обязателен для Tailwind v4) |
 | **Tailwind CSS** | 4.1.18 | Utility-first CSS фреймворк |
 | **PostCSS** | 8.5.6 | Процессор CSS (обработка Tailwind-директив) |
 | **Autoprefixer** | 10.4.23 | Автоматическое добавление вендорных префиксов |

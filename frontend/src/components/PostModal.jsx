@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
+import { ModalStackRoot, ModalWindow } from "./ModalShell.jsx";
+import UserAvatar from "./UserAvatar.jsx";
 
-export default function PostModal({ postId, onClose }) {
+export default function PostModal({ postId, onClose, onDeleted }) {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [stats, setStats] = useState({ likes: 0, liked: false });
@@ -14,6 +16,11 @@ export default function PostModal({ postId, onClose }) {
   const [loading, setLoading] = useState(true);
   const [likeLoading, setLikeLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editCaption, setEditCaption] = useState("");
+  const [editComment, setEditComment] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
   const [error, setError] = useState(null);
   const [actionsOpen, setActionsOpen] = useState(false);
 
@@ -34,6 +41,7 @@ export default function PostModal({ postId, onClose }) {
               liked: Boolean(data.stats.liked),
             });
           }
+          setEditCaption(data.post?.caption || "");
         }
       } catch (err) {
         if (mounted) setError(err.message || "Unable to load the post.");
@@ -117,16 +125,78 @@ export default function PostModal({ postId, onClose }) {
     }
   }
 
+  async function handleEditSave() {
+    if (editSaving) return;
+    setEditSaving(true);
+    setError(null);
+    try {
+      const trimmedCaption = editCaption.trim();
+      const trimmedComment = editComment.trim();
+
+      if (post && trimmedCaption !== String(post.caption || "")) {
+        const data = await request(`/posts/${postId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ caption: trimmedCaption }),
+        });
+        if (data?.post) {
+          setPost(data.post);
+        }
+      }
+
+      if (trimmedComment) {
+        const data = await request(`/posts/${postId}/comments`, {
+          method: "POST",
+          body: JSON.stringify({ text: trimmedComment }),
+        });
+        if (data.comment) {
+          setComments((prev) => [data.comment, ...prev]);
+          setCommentsTotal((prev) => prev + 1);
+        }
+      }
+
+      setEditComment("");
+      setEditOpen(false);
+    } catch (err) {
+      setError(err.message || "Unable to update the post.");
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (deleteLoading) return;
+    setDeleteLoading(true);
+    setError(null);
+    try {
+      await request(`/posts/${postId}`, { method: "DELETE" });
+      onDeleted?.(postId);
+      onClose?.();
+    } catch (err) {
+      setError(err.message || "Unable to delete the post.");
+    } finally {
+      setDeleteLoading(false);
+      setActionsOpen(false);
+    }
+  }
+
+  function handleOverlayClose() {
+    if (editOpen) {
+      setEditOpen(false);
+      return;
+    }
+    if (actionsOpen) {
+      setActionsOpen(false);
+      return;
+    }
+    onClose?.();
+  }
+
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center">
-      <button
-        type="button"
-        onClick={onClose}
-        className="absolute inset-0 bg-black/60"
-        aria-label="Close"
-      />
-      <div className="relative z-[61] flex flex-col md:flex-row h-[90vh] md:h-[78vh] w-full md:w-[1100px] max-w-[92vw] overflow-hidden rounded-2xl bg-white text-[#262626] shadow-2xl">
-        <div className="h-[40vh] md:h-auto md:flex-1 bg-black shrink-0">
+    <ModalStackRoot open={Boolean(postId)} onClose={handleOverlayClose}>
+      <ModalWindow preset="post" zClass="z-[91]">
+        <div className="relative h-full w-full overflow-hidden text-[#262626]">
+          <div className="relative flex h-full w-full flex-col md:flex-row">
+            <div className="h-[40vh] md:h-auto md:flex-1 bg-black shrink-0">
           {loading ? (
             <div className="flex h-full items-center justify-center text-sm text-white/70">
               Loading...
@@ -142,11 +212,11 @@ export default function PostModal({ postId, onClose }) {
               No image
             </div>
           )}
-        </div>
+            </div>
 
-        <div className="flex w-full md:w-[420px] flex-col border-l border-[#DBDBDB] min-h-0 flex-1">
+            <div className="flex w-full md:w-[420px] flex-col border-l border-[#DBDBDB] min-h-0 flex-1">
           <div className="flex items-center gap-3 border-b border-[#DBDBDB] px-5 py-4">
-            <div className="h-9 w-9 rounded-full bg-[#DBDBDB]" />
+            <UserAvatar user={post?.authorId} size={36} />
             <div className="text-sm font-semibold">
               {post?.authorId?.username || "user"}
             </div>
@@ -156,14 +226,14 @@ export default function PostModal({ postId, onClose }) {
               className="ml-auto text-[#8E8E8E]"
               aria-label="More options"
             >
-              •••
+              ...
             </button>
           </div>
 
           <div className="flex-1 space-y-4 overflow-auto px-5 py-4">
             {post?.caption ? (
               <div className="flex gap-3">
-                <div className="h-9 w-9 rounded-full bg-[#DBDBDB]" />
+                <UserAvatar user={post?.authorId} size={36} />
                 <div className="text-sm text-[#262626]">
                   <span className="font-semibold">
                     {post?.authorId?.username || "user"}
@@ -179,7 +249,7 @@ export default function PostModal({ postId, onClose }) {
 
             {comments.map((comment) => (
               <div key={comment._id} className="flex gap-3">
-                <div className="h-9 w-9 rounded-full bg-[#DBDBDB]" />
+                <UserAvatar user={comment.userId} size={36} />
                 <div className="text-sm text-[#262626]">
                   <span className="font-semibold">
                     {comment.userId?.username || "user"}
@@ -216,79 +286,80 @@ export default function PostModal({ postId, onClose }) {
                 alt="Comment"
                 className="h-6 w-6 cursor-pointer"
               />
-              <div className="ml-auto text-xs text-[#8E8E8E]">
-                Likes: <span className="font-semibold">{stats.likes}</span>
-              </div>
+            </div>
+            <div className="mt-2 text-xs text-[#8E8E8E]">
+              Likes: <span className="font-semibold">{stats.likes}</span>
             </div>
           </div>
 
-          <form
+            <form
             onSubmit={handleAddComment}
             className="border-t border-[#DBDBDB] px-5 py-3"
           >
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-[#DBDBDB]" />
-              <input
-                value={commentText}
-                onChange={(event) => setCommentText(event.target.value)}
-                placeholder="Add a comment..."
-                className="h-10 flex-1 rounded-full bg-[#FAFAFA] px-4 text-sm text-[#262626] placeholder:text-[#8E8E8E] outline-none"
-              />
+              <img src="/images/Smile.svg" alt="Emoji" />
+              <div className="flex h-10 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-4 text-sm text-[#262626]">
+                <input
+                  value={commentText}
+                  onChange={(event) => setCommentText(event.target.value)}
+                  placeholder="Add a comment..."
+                  className="h-full w-full bg-transparent outline-none placeholder:text-[#8E8E8E]"
+                />
+              </div>
               <button
                 type="submit"
                 disabled={sending}
                 className="text-sm font-semibold text-[#0095F6] disabled:opacity-60"
               >
-                Post
+                Share
               </button>
             </div>
             {error ? (
               <div className="mt-2 text-xs text-red-500">{error}</div>
             ) : null}
-          </form>
+            </form>
+          </div>
         </div>
       </div>
+      </ModalWindow>
 
       {actionsOpen ? (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center">
-          <button
-            type="button"
-            onClick={() => setActionsOpen(false)}
-            className="absolute inset-0 bg-black/50"
-            aria-label="Close actions"
-          />
-          <div className="relative z-[71] w-[360px] max-w-[90vw] overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="absolute inset-0 z-[92] flex items-center justify-center pointer-events-none">
+          <div
+            className="pointer-events-auto w-[360px] max-w-[90vw] overflow-hidden rounded-2xl bg-white text-center shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
             <button
               type="button"
-              onClick={() => setActionsOpen(false)}
-              className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-red-500"
+              onClick={handleDelete}
+              disabled={deleteLoading}
+              className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm font-semibold text-red-500 disabled:opacity-60"
             >
-              Report
-            </button>
-            <button
-              type="button"
-              onClick={() => setActionsOpen(false)}
-              className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-red-500"
-            >
-              Unfollow
+              Delete
             </button>
             <button
               type="button"
               onClick={() => {
-                navigate(`/post/${postId}`);
+                setActionsOpen(false);
+                setEditOpen(true);
+              }}
+              className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const authorId = post?.authorId?._id;
+                if (authorId) {
+                  navigate(`/profile/${authorId}`);
+                }
                 setActionsOpen(false);
                 onClose?.();
               }}
               className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
             >
               Go to post
-            </button>
-            <button
-              type="button"
-              onClick={() => setActionsOpen(false)}
-              className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
-            >
-              Share
             </button>
             <button
               type="button"
@@ -300,13 +371,6 @@ export default function PostModal({ postId, onClose }) {
             <button
               type="button"
               onClick={() => setActionsOpen(false)}
-              className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
-            >
-              About this account
-            </button>
-            <button
-              type="button"
-              onClick={() => setActionsOpen(false)}
               className="w-full px-6 py-4 text-sm text-[#262626]"
             >
               Cancel
@@ -314,6 +378,86 @@ export default function PostModal({ postId, onClose }) {
           </div>
         </div>
       ) : null}
-    </div>
+
+      {editOpen ? (
+        <div className="absolute inset-0 z-[92] flex items-start justify-center pointer-events-none pt-6">
+          <div
+            className="pointer-events-auto w-[720px] max-w-[92vw] overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#EFEFEF] px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setEditOpen(false)}
+                className="text-sm text-[#262626]"
+              >
+                Cancel
+              </button>
+              <div className="text-sm font-semibold text-[#262626]">
+                Edit info
+              </div>
+              <button
+                type="button"
+                onClick={handleEditSave}
+                disabled={editSaving}
+                className="text-sm font-semibold text-[#0095F6] disabled:opacity-60"
+              >
+                Done
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-0 md:grid-cols-[1fr_320px]">
+              <div className="h-[360px] bg-black md:h-[520px]">
+                {post?.image ? (
+                  <img
+                    src={post.image}
+                    alt={post.caption || "post"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-sm text-white/70">
+                    No image
+                  </div>
+                )}
+              </div>
+
+              <div className="flex h-full flex-col border-l border-[#EFEFEF] bg-white">
+                <div className="flex items-center gap-3 border-b border-[#EFEFEF] px-5 py-4">
+                  <UserAvatar user={post?.authorId} size={36} />
+                  <div className="text-sm font-semibold">
+                    {post?.authorId?.username || "user"}
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-4 overflow-auto px-5 py-4">
+                  <div className="text-xs text-[#8E8E8E]">Caption</div>
+                  <textarea
+                    value={editCaption}
+                    onChange={(e) => setEditCaption(e.target.value)}
+                    maxLength={2200}
+                    rows={6}
+                    className="w-full resize-none rounded-xl border border-[#DBDBDB] px-3 py-2 text-sm text-[#262626] outline-none focus:border-[#A8A8A8]"
+                  />
+                  <div className="text-right text-[12px] text-[#C7C7C7]">
+                    {editCaption.length} / 2200
+                  </div>
+
+                  <div className="mt-6 text-xs text-[#8E8E8E]">
+                    Add a comment
+                  </div>
+                  <input
+                    value={editComment}
+                    onChange={(e) => setEditComment(e.target.value)}
+                    placeholder="Add a comment..."
+                    className="w-full rounded-xl border border-[#DBDBDB] px-3 py-2 text-sm text-[#262626] outline-none placeholder:text-[#8E8E8E] focus:border-[#A8A8A8]"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </ModalStackRoot>
   );
 }
+

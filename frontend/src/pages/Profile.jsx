@@ -4,12 +4,15 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { request } from "../lib/apiClient.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import PostCreateModal from "../components/PostCreateModal.jsx";
+import PostModal from "../components/PostModal.jsx";
+import useIsDesktop from "../lib/useIsDesktop.js";
 
 export default function Profile() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { user: me } = useAuth();
+  const isDesktop = useIsDesktop();
   const [profile, setProfile] = useState(null);
   const [stats, setStats] = useState({
     posts: 0,
@@ -25,6 +28,7 @@ export default function Profile() {
   const [postsLoading, setPostsLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [modalPostId, setModalPostId] = useState(null);
 
   const isOwner = useMemo(
     () => me && profile && String(me._id) === String(profile._id),
@@ -90,10 +94,33 @@ export default function Profile() {
   useEffect(() => {
     const shouldOpen = Boolean(location.state?.createOpen);
     if (shouldOpen && isOwner) {
-      setCreateOpen(true);
+      if (isDesktop) {
+        setCreateOpen(true);
+      } else {
+        navigate("/posts/new");
+      }
       navigate(".", { replace: true, state: null });
     }
-  }, [isOwner, location.state, navigate]);
+  }, [isDesktop, isOwner, location.state, navigate]);
+
+  useEffect(() => {
+    function handleCreated(event) {
+      const created = event.detail;
+      if (!created?._id) return;
+      const authorId =
+        created.authorId?._id || created.authorId || created.userId?._id || created.userId;
+      if (!authorId || !profile?._id) return;
+      if (String(authorId) !== String(profile._id)) return;
+      setPosts((prev) => {
+        if (prev.some((post) => post._id === created._id)) return prev;
+        return [created, ...prev];
+      });
+      setPostsTotal((prev) => prev + 1);
+      setStats((prev) => ({ ...prev, posts: (prev.posts || 0) + 1 }));
+    }
+    window.addEventListener("post:created", handleCreated);
+    return () => window.removeEventListener("post:created", handleCreated);
+  }, [profile?._id]);
 
   async function handleToggleFollow() {
     if (followLoading || isOwner) {
@@ -257,11 +284,18 @@ export default function Profile() {
               </div>
             </div>
           )}
-          <div className="grid grid-cols-3 gap-1">
+          <div className={["grid grid-cols-3 gap-1", modalPostId ? "opacity-60" : ""].join(" ")}>
             {posts.map((post) => (
-              <Link
+              <button
                 key={post._id}
-                to={`/post/${post._id}`}
+                type="button"
+                onClick={() => {
+                  if (isDesktop) {
+                    setModalPostId(post._id);
+                  } else {
+                    navigate(`/post/${post._id}`);
+                  }
+                }}
                 className="group relative aspect-square overflow-hidden bg-[#FAFAFA]"
               >
                 {post.image ? (
@@ -273,18 +307,48 @@ export default function Profile() {
                 ) : null}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition group-hover:opacity-100">
                   <div className="flex items-center gap-6 text-white font-semibold text-[14px]">
-                    <span>¦ {post.likesCount || 0}</span>
-                    <span>?? {post.commentsCount || 0}</span>
+                    <span>Likes {post.likesCount || 0}</span>
+                    <span>Comments {post.commentsCount || 0}</span>
                   </div>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         </div>
       </div>
 
-      {createOpen ? (
-        <PostCreateModal onClose={() => setCreateOpen(false)} />
+      {isDesktop && modalPostId ? (
+        <PostModal
+          postId={modalPostId}
+          onClose={() => setModalPostId(null)}
+          onDeleted={(id) => {
+            setPosts((prev) => prev.filter((p) => p._id !== id));
+            setPostsTotal((prev) => Math.max(prev - 1, 0));
+            setStats((prev) => ({
+              ...prev,
+              posts: Math.max((prev.posts || 0) - 1, 0),
+            }));
+          }}
+        />
+      ) : null}
+
+      {createOpen && isDesktop ? (
+        <PostCreateModal
+          onClose={() => setCreateOpen(false)}
+          onCreated={(created) => {
+            if (!created?._id) return;
+            const authorId =
+              created.authorId?._id || created.authorId || created.userId?._id || created.userId;
+            if (!authorId || !profile?._id) return;
+            if (String(authorId) !== String(profile._id)) return;
+            setPosts((prev) => {
+              if (prev.some((post) => post._id === created._id)) return prev;
+              return [created, ...prev];
+            });
+            setPostsTotal((prev) => prev + 1);
+            setStats((prev) => ({ ...prev, posts: (prev.posts || 0) + 1 }));
+          }}
+        />
       ) : null}
     </div>
   );

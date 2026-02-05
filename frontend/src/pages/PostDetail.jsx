@@ -119,7 +119,9 @@ export default function PostDetail() {
   if (loading) {
     return (
       <div className="px-4 py-10">
-        <div className="mx-auto max-w-2xl text-[14px] text-[#737373]">Loading...</div>
+        <div className="mx-auto max-w-2xl text-[14px] text-[#737373]">
+          Loading...
+        </div>
       </div>
     );
   }
@@ -141,9 +143,10 @@ export default function PostDetail() {
   return (
     <div className="px-4 py-10">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        <Link className="text-[14px] font-semibold text-[#00376B]" to="/">
-          ← Back to feed
-        </Link>
+        {/* <Link
+          className="text-[14px] font-semibold text-[#00376B]"
+          to="/"
+        ></Link> */}
         <article className="overflow-hidden rounded-lg border border-[#EFEFEF] bg-white">
           {post.image ? (
             <img
@@ -167,7 +170,9 @@ export default function PostDetail() {
                 className="disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <img
-                  src={stats.liked ? "/images/Like_active.svg" : "/images/Like.svg"}
+                  src={
+                    stats.liked ? "/images/Like_active.svg" : "/images/Like.svg"
+                  }
                   alt="Like"
                   className="h-6 w-6 cursor-pointer"
                 />
@@ -202,7 +207,11 @@ export default function PostDetail() {
           </form>
 
           <div className="mt-6 grid gap-4">
-            {commentsLoading ? <div className="text-[14px] text-[#737373]">Loading comments...</div> : null}
+            {commentsLoading ? (
+              <div className="text-[14px] text-[#737373]">
+                Loading comments...
+              </div>
+            ) : null}
             {!commentsLoading && comments.length === 0 ? (
               <div className="text-[14px] text-[#737373]">No comments yet.</div>
             ) : null}
@@ -221,7 +230,9 @@ export default function PostDetail() {
                   <div className="text-[14px] font-semibold text-[#262626]">
                     @{comment.userId?.username || "unknown"}
                   </div>
-                  <div className="text-[14px] text-[#262626]">{comment.text}</div>
+                  <div className="text-[14px] text-[#262626]">
+                    {comment.text}
+                  </div>
                 </div>
               </div>
             ))}

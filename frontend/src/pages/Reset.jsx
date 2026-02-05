@@ -18,6 +18,11 @@ export default function Reset() {
     setLoading(true);
 
     try {
+      if (!identifier.trim()) {
+        setError("Please enter your email or username.");
+        setLoading(false);
+        return;
+      }
       await request("/auth/forgot-password", {
         method: "POST",
         body: JSON.stringify({ identifier }),
@@ -31,14 +36,14 @@ export default function Reset() {
   }
 
   const inputClass = [
-    "w-[268px] h-[38px] rounded-[3px]",
+    "w-[300px] h-[40px] rounded-[3px]",
     "border border-[#DBDBDB] bg-[#FAFAFA] px-3",
-    "text-[12px] text-black placeholder:text-[#737373]",
+    "text-[12px] text-black placeholder:text-[#C7C7C7]",
     "focus:border-[#A8A8A8] focus:bg-white focus:outline-none",
   ].join(" ");
 
   const buttonClass = [
-    "w-[268px] h-[38px] rounded-[8px]",
+    "w-[300px] h-[40px] rounded-[8px]",
     "bg-[#0095F6] text-[14px] font-semibold text-white",
     "transition hover:bg-[#1877F2] active:scale-[0.99]",
     "disabled:cursor-not-allowed disabled:opacity-60",
@@ -48,17 +53,17 @@ export default function Reset() {
     <div className="min-h-screen bg-white">
       {/* Top bar */}
       <div className="border-b border-[#DBDBDB]">
-        <div className="mx-auto flex h-[60px] max-w-[935px] items-center px-4">
+        <div className="flex h-[60px] items-center px-[44px]">
           <img
             src={logoImage}
             alt="Logo"
-            className="h-8 w-auto object-contain"
+            className="h-auto w-[97px] object-contain"
           />
         </div>
       </div>
 
       <div className="flex min-h-[calc(100vh-60px)] items-center justify-center px-4">
-        <div className="w-full max-w-[350px] rounded-[8px] border border-[#DBDBDB] bg-white px-10 py-8">
+        <div className="w-[390px] rounded-[3px] border border-[#DBDBDB] bg-white px-10 pt-8 pb-0">
           {/* Icon */}
           <div className="mb-4 flex justify-center">
             <img src={lockIcon} alt="Lock" className="cursor-pointer" />
@@ -85,7 +90,7 @@ export default function Reset() {
             />
 
             {sent && (
-              <div className="mt-3 w-[268px] text-center text-[12px] text-[#0095F6]">
+              <div className="mt-3 w-[268px] text-center text-[12px] text-[#34A853]">
                 If the account exists, we sent a reset link.
               </div>
             )}
@@ -98,7 +103,7 @@ export default function Reset() {
 
             <button
               type="submit"
-              disabled={loading || !identifier.trim()}
+              disabled={loading}
               className={`mt-3 ${buttonClass}`}
             >
               {loading ? "Sending..." : "Reset your password"}
@@ -115,16 +120,16 @@ export default function Reset() {
           <div className="text-center">
             <Link
               to="/register"
-              className="text-[12px] font-semibold text-[#262626] hover:underline"
+              className="text-[14px] font-semibold text-[#262626] hover:underline"
             >
               Create new account
             </Link>
           </div>
 
-          <div className="mt-6 border-t border-[#DBDBDB] pt-4 text-center">
+          <div className="mt-6 border-t border-[#DBDBDB] -mx-10">
             <Link
               to="/login"
-              className="text-[12px] font-semibold text-[#262626] hover:underline"
+              className="block h-[44px] w-full rounded-b-[3px] bg-white text-center text-[14px] font-semibold leading-[44px] text-[#262626] transition hover:bg-[#FAFAFA]"
             >
               Back to login
             </Link>

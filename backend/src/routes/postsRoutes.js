@@ -6,6 +6,8 @@ import upload from "../middlewares/upload.js";
 import {
   createPost,
   listFeed,
+  listHomeFeed,
+  listExploreFeed,
   getPost,
   updatePost,
   deletePost,
@@ -18,7 +20,9 @@ import {
 
 const router = express.Router();
 
-router.get("/", listFeed);
+router.get("/feed/home", auth, listHomeFeed);
+router.get("/feed/explore", auth, listExploreFeed);
+router.get("/", auth, listFeed);
 router.post("/", auth, upload.single("image"), createPost);
 router.get("/:id", optionalAuth, getPost);
 router.post("/:id/like", auth, toggleLike);

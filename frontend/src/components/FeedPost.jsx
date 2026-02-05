@@ -8,10 +8,18 @@ export default function FeedPost({
   const commentIcon = "/images/Comment.svg";
 
   return (
-    <article className="w-full max-w-[400px] border-b border-[#EFEFEF] pb-10">
+    <article className="w-full md:w-[402px] md:max-w-[402px] border-b border-[#EFEFEF] pb-10">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-[#DBDBDB]" />
+          <div className="h-8 w-8 overflow-hidden rounded-full bg-[#DBDBDB]">
+            {post.authorId?.avatar ? (
+              <img
+                src={post.authorId.avatar}
+                alt={post.authorId.username || "author"}
+                className="h-full w-full object-cover"
+              />
+            ) : null}
+          </div>
           <div>
             <div className="text-[14px] font-semibold text-[#262626]">
               {post.authorId?.username || "unknown"}
@@ -21,7 +29,7 @@ export default function FeedPost({
         </div>
       </div>
 
-      <div className="aspect-square w-full max-w-[400px] bg-[#F2F2F2]">
+      <div className="aspect-square md:aspect-auto w-full bg-[#F2F2F2] md:h-[504px]">
         {post.image && (
           <img src={post.image} alt="" className="h-full w-full object-cover" />
         )}

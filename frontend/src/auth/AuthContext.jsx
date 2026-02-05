@@ -71,9 +71,17 @@ export function AuthProvider({ children }) {
           email,
           username,
           password,
-          fullName: name || undefined,
+          name: name || undefined,
         }),
       });
+
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+        setToken(data.token);
+      }
+      if (data?.user) {
+        setUser(data.user);
+      }
 
       return data;
     } catch (err) {

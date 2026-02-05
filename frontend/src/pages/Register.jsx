@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 export default function Register() {
@@ -8,35 +9,31 @@ export default function Register() {
   const navigate = useNavigate();
   const { register } = useAuth();
 
-  const [form, setForm] = useState({
-    email: "",
-    username: "",
-    password: "",
-    name: "",
+  const [error, setError] = useState(null);
+  const {
+    register: rhfRegister,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      email: "",
+      username: "",
+      password: "",
+      name: "",
+    },
   });
 
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  function updateField(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function onSubmit(data) {
     setError(null);
-    setLoading(true);
-
     try {
       await register({
-        email: form.email,
-        username: form.username,
-        password: form.password,
-        name: form.name || undefined,
+        email: data.email,
+        username: data.username,
+        password: data.password,
+        name: data.name || undefined,
       });
 
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     } catch (err) {
       if (err.status === 400) {
         setError("Please fill in all required fields (email, username, password).");
@@ -45,8 +42,6 @@ export default function Register() {
       } else {
         setError(err.message || "Unable to sign up.");
       }
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -80,44 +75,66 @@ export default function Register() {
             Sign up to see photos and videos <br /> from your friends.
           </p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col items-center">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col items-center"
+          >
             <div className="flex flex-col gap-2">
               <input
-                name="email"
                 type="email"
                 placeholder="Email"
-                value={form.email}
-                onChange={updateField}
+                {...rhfRegister("email", {
+                  required: "Email is required.",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Enter a valid email.",
+                  },
+                })}
                 className={inputClass}
               />
 
               <input
-                name="name"
                 type="text"
                 placeholder="Full Name"
-                value={form.name}
-                onChange={updateField}
+                {...rhfRegister("name", {
+                  maxLength: { value: 80, message: "Max 80 characters." },
+                })}
                 className={inputClass}
               />
 
               <input
-                name="username"
                 type="text"
                 placeholder="Username"
-                value={form.username}
-                onChange={updateField}
+                {...rhfRegister("username", {
+                  required: "Username is required.",
+                  minLength: { value: 3, message: "Min 3 characters." },
+                  maxLength: { value: 30, message: "Max 30 characters." },
+                })}
                 className={inputClass}
               />
 
               <input
-                name="password"
                 type="password"
                 placeholder="Password"
-                value={form.password}
-                onChange={updateField}
+                {...rhfRegister("password", {
+                  required: "Password is required.",
+                  minLength: { value: 8, message: "Min 8 characters." },
+                })}
                 className={inputClass}
               />
             </div>
+
+            {(errors.email ||
+              errors.name ||
+              errors.username ||
+              errors.password) && (
+              <div className="mt-3 w-[268px] text-center text-[12px] text-red-500">
+                {errors.email?.message ||
+                  errors.name?.message ||
+                  errors.username?.message ||
+                  errors.password?.message}
+              </div>
+            )}
 
             <p className="mt-3 w-[268px] text-center text-[12px] leading-4 text-[#737373]">
               People who use our service may have uploaded your contact
@@ -150,10 +167,10 @@ export default function Register() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
               className={`mt-4 ${buttonClass}`}
             >
-              {loading ? "Signing up..." : "Sign up"}
+              {isSubmitting ? "Signing up..." : "Sign up"}
             </button>
           </form>
         </div>
@@ -171,4 +188,3 @@ export default function Register() {
     </div>
   );
 }
-

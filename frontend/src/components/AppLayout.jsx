@@ -5,11 +5,13 @@ import { request } from "../lib/apiClient.js";
 import Sidebar from "./Sidebar.jsx";
 import NotificationsList from "./NotificationsList.jsx";
 import PostCreateModal from "./PostCreateModal.jsx";
+import useIsDesktop from "../lib/useIsDesktop.js";
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const isDesktop = useIsDesktop();
 
   const [panel, setPanel] = useState(null);
   const panelOpen = panel !== null;
@@ -26,6 +28,11 @@ export default function AppLayout() {
   }, [location.state, navigate]);
 
   function togglePanel(type) {
+    if (!isDesktop && type === "notifications") {
+      setPanel(null);
+      navigate("/notifications");
+      return;
+    }
     setPanel((prev) => (prev === type ? null : type));
   }
 
@@ -78,10 +85,27 @@ export default function AppLayout() {
             searchActive={panel === "search"}
             notifActive={panel === "notifications"}
             exploreActive={location.pathname === "/explore" && !panelOpen}
-            onHome={() => { setPanel(null); setMobileMenuOpen(false); navigate("/"); }}
-            onToggleSearch={() => { togglePanel("search"); setMobileMenuOpen(false); }}
-            onToggleNotifications={() => { togglePanel("notifications"); setMobileMenuOpen(false); }}
-            onCreate={() => { setCreateOpen(true); setMobileMenuOpen(false); }}
+            onHome={() => {
+              setPanel(null);
+              setMobileMenuOpen(false);
+              navigate("/");
+            }}
+            onToggleSearch={() => {
+              togglePanel("search");
+              setMobileMenuOpen(false);
+            }}
+            onToggleNotifications={() => {
+              togglePanel("notifications");
+              setMobileMenuOpen(false);
+            }}
+            onCreate={() => {
+              if (isDesktop) {
+                setCreateOpen(true);
+              } else {
+                navigate("/posts/new");
+              }
+              setMobileMenuOpen(false);
+            }}
             onNavigate={() => setMobileMenuOpen(false)}
           />
         </div>
@@ -91,21 +115,33 @@ export default function AppLayout() {
           {panel === "notifications" && <NotificationsList />}
         </LeftPanelFixed>
 
-        <main className="flex-1">
+        <main className="flex-1 pb-[158px] md:pb-[158px] md:ml-[78px]">
           <Outlet />
         </main>
       </div>
 
       <FooterNav
-        onHome={() => { setPanel(null); navigate("/"); }}
+        onHome={() => {
+          setPanel(null);
+          navigate("/");
+        }}
         onSearch={() => togglePanel("search")}
-        onExplore={() => { setPanel(null); navigate("/explore"); }}
+        onExplore={() => {
+          setPanel(null);
+          navigate("/explore");
+        }}
         onMessages={() => {}}
         onNotifications={() => togglePanel("notifications")}
-        onCreate={() => setCreateOpen(true)}
+        onCreate={() => {
+          if (isDesktop) {
+            setCreateOpen(true);
+          } else {
+            navigate("/posts/new");
+          }
+        }}
       />
 
-      {createOpen ? (
+      {createOpen && isDesktop ? (
         <PostCreateModal onClose={() => setCreateOpen(false)} />
       ) : null}
     </div>
@@ -217,17 +253,31 @@ function FooterNav({
     "text-[12px] text-[#737373] hover:text-[#262626] transition";
 
   return (
-    <footer className="fixed bottom-0 left-0 z-50 w-full bg-white">
-      <div className="flex h-[44px] items-center justify-between px-4 md:justify-center md:gap-8 md:px-6">
-        <button onClick={onHome} className={linkClass}>Home</button>
-        <button onClick={onSearch} className={linkClass}>Search</button>
-        <button onClick={onExplore} className={linkClass}>Explore</button>
-        <button onClick={onMessages} className={linkClass}>Messages</button>
-        <button onClick={onNotifications} className={linkClass}>Notifications</button>
-        <button onClick={onCreate} className={linkClass}>Create</button>
-      </div>
-      <div className="pb-3 text-center text-[12px] text-[#737373]">
-        © 2024 ICHgram
+    <footer className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white h-[158px] md:h-auto">
+      <div className="flex flex-col items-center px-4 md:px-6 md:py-6">
+        <div className="flex h-[44px] w-full items-center justify-between md:w-auto md:gap-8">
+          <button onClick={onHome} className={linkClass}>
+            Home
+          </button>
+          <button onClick={onSearch} className={linkClass}>
+            Search
+          </button>
+          <button onClick={onExplore} className={linkClass}>
+            Explore
+          </button>
+          <button onClick={onMessages} className={linkClass}>
+            Messages
+          </button>
+          <button onClick={onCreate} className={linkClass}>
+            Create
+          </button>
+          <button onClick={onNotifications} className={linkClass}>
+            Notifications
+          </button>
+        </div>
+        <div className="mt-[45px] text-center text-[12px] text-[#737373]">
+          © 2024 ICHgram
+        </div>
       </div>
     </footer>
   );
