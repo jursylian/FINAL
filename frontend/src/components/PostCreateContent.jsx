@@ -84,7 +84,7 @@ export default function PostCreateContent({ onClose, onCreated, showBack }) {
   const shareDisabled = !file || saving;
 
   return (
-    <div className="w-full  bg-blue-500">
+    <div className="flex h-full w-full flex-col">
       <div className="flex items-center justify-between border-b border-[#DBDBDB] px-5 py-3">
         <div className="flex items-center gap-3">
           {showBack ? (
@@ -114,7 +114,7 @@ export default function PostCreateContent({ onClose, onCreated, showBack }) {
       <form
         id="post-create-form"
         onSubmit={handleSubmit}
-        className="flex h-full w-full flex-col md:flex-row md:h-[520px]"
+        className="flex flex-1 w-full flex-col md:flex-row overflow-hidden"
       >
         <div className="flex flex-1 items-center justify-center bg-white">
           {previewUrl ? (
