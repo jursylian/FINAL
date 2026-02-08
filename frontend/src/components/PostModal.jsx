@@ -6,7 +6,14 @@ import { DEFAULT_LIMIT } from "../lib/constants.js";
 import { ModalStackRoot, ModalWindow } from "./ModalShell.jsx";
 import UserAvatar from "./UserAvatar.jsx";
 
-export default function PostModal({ postId, onClose, onDeleted, onEdit }) {
+export default function PostModal({
+  postId,
+  onClose,
+  onDeleted,
+  onEdit,
+  allowMobile = false,
+  focusCommentId = null,
+}) {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [stats, setStats] = useState({ likes: 0, liked: false });
@@ -145,8 +152,24 @@ export default function PostModal({ postId, onClose, onDeleted, onEdit }) {
     onClose?.();
   }
 
+  const commentsRef = React.useRef(null);
+
+  useEffect(() => {
+    if (!focusCommentId || !commentsRef.current) return;
+    const target = commentsRef.current.querySelector(
+      `[data-comment-id="${focusCommentId}"]`,
+    );
+    if (target) {
+      target.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }, [focusCommentId, comments]);
+
   return (
-    <ModalStackRoot open={Boolean(postId)} onClose={handleOverlayClose}>
+    <ModalStackRoot
+      open={Boolean(postId)}
+      onClose={handleOverlayClose}
+      allowMobile={allowMobile}
+    >
       <ModalWindow preset="post" zClass="z-[91]">
         <div className="relative h-full w-full overflow-hidden text-[#262626]">
           <div className="relative flex h-full w-full flex-col md:flex-row">
@@ -184,7 +207,10 @@ export default function PostModal({ postId, onClose, onDeleted, onEdit }) {
             </button>
           </div>
 
-          <div className="flex-1 space-y-4 overflow-auto px-5 py-4">
+          <div
+            ref={commentsRef}
+            className="flex-1 space-y-4 overflow-auto px-5 py-4"
+          >
             {post?.caption ? (
               <div className="flex gap-3">
                 <UserAvatar user={post?.authorId} size={36} />
@@ -202,7 +228,11 @@ export default function PostModal({ postId, onClose, onDeleted, onEdit }) {
             ) : null}
 
             {comments.map((comment) => (
-              <div key={comment._id} className="flex gap-3">
+              <div
+                key={comment._id}
+                data-comment-id={comment._id}
+                className="flex gap-3"
+              >
                 <UserAvatar user={comment.userId} size={36} />
                 <div className="text-sm text-[#262626]">
                   <span className="font-semibold">
@@ -337,4 +367,3 @@ export default function PostModal({ postId, onClose, onDeleted, onEdit }) {
     </ModalStackRoot>
   );
 }
-

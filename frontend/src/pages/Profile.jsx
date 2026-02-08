@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
@@ -12,6 +12,7 @@ export default function Profile() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user: me } = useAuth();
   const isDesktop = useIsDesktop();
   const [profile, setProfile] = useState(null);
@@ -30,6 +31,7 @@ export default function Profile() {
   const [followLoading, setFollowLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [modalPostId, setModalPostId] = useState(null);
+  const [focusCommentId, setFocusCommentId] = useState(null);
   const [editPost, setEditPost] = useState(null);
 
   const isOwner = useMemo(
@@ -92,6 +94,14 @@ export default function Profile() {
       mounted = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    const postId = searchParams.get("post");
+    if (!postId) return;
+    setModalPostId(postId);
+    const commentId = searchParams.get("comment");
+    setFocusCommentId(commentId || null);
+  }, [searchParams]);
 
   useEffect(() => {
     const shouldOpen = Boolean(location.state?.createOpen);
@@ -325,7 +335,14 @@ export default function Profile() {
       {isDesktop && modalPostId ? (
         <PostModal
           postId={modalPostId}
-          onClose={() => setModalPostId(null)}
+          focusCommentId={focusCommentId}
+          onClose={() => {
+            setModalPostId(null);
+            setFocusCommentId(null);
+            if (searchParams.get("post") || searchParams.get("comment")) {
+              setSearchParams({}, { replace: true });
+            }
+          }}
           onDeleted={(id) => {
             setPosts((prev) => prev.filter((p) => p._id !== id));
             setPostsTotal((prev) => Math.max(prev - 1, 0));

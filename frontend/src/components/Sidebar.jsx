@@ -7,6 +7,7 @@ export default function Sidebar({
   homeActive,
   searchActive,
   notifActive,
+  notifCount = 0,
   onHome,
   onToggleSearch,
   onToggleNotifications,
@@ -17,6 +18,7 @@ export default function Sidebar({
   const iconClass = "h-6 w-6 shrink-0 cursor-pointer";
   const rowClass = "flex items-center gap-3";
   const labelClass = "text-[14px] text-[#262626]";
+  const badgeText = notifCount > 99 ? "99+" : String(notifCount);
 
   return (
     <aside className="sticky top-0 z-50 h-screen md:h-[calc(100vh-158px)] w-[245px] border-r border-[#DBDBDB] bg-white overflow-hidden">
@@ -61,10 +63,19 @@ export default function Sidebar({
           </div>
 
           <button onClick={onToggleNotifications} className={rowClass}>
-            <img
-              src={notifActive ? "/images/Like_active.svg" : "/images/Like.svg"}
-              className={iconClass}
-            />
+            <span className="relative">
+              <img
+                src={notifActive ? "/images/Like_active.svg" : "/images/Like.svg"}
+                className={iconClass}
+              />
+              {notifCount > 0 ? (
+                <span
+                  className="absolute -right-2 -top-2 flex min-w-[18px] items-center justify-center rounded-full bg-[#0095F6] px-1 text-[10px] font-semibold text-white"
+                >
+                  {badgeText}
+                </span>
+              ) : null}
+            </span>
             <span className={labelClass}>Notifications</span>
           </button>
 

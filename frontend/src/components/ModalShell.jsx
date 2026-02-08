@@ -2,11 +2,12 @@ import React, { useEffect } from "react";
 
 import useIsDesktop from "../lib/useIsDesktop.js";
 
-export function ModalStackRoot({ open, onClose, children }) {
+export function ModalStackRoot({ open, onClose, allowMobile = false, children }) {
   const isDesktop = useIsDesktop();
+  const canShow = Boolean(open) && (isDesktop || allowMobile);
 
   useEffect(() => {
-    if (!open || !isDesktop) return;
+    if (!canShow) return;
     const handleKey = (event) => {
       if (event.key === "Escape") {
         onClose?.();
@@ -14,18 +15,18 @@ export function ModalStackRoot({ open, onClose, children }) {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [open, isDesktop, onClose]);
+  }, [canShow, onClose]);
 
   useEffect(() => {
-    if (!open || !isDesktop) return;
+    if (!canShow) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prevOverflow;
     };
-  }, [open, isDesktop]);
+  }, [canShow]);
 
-  if (!open || !isDesktop) {
+  if (!canShow) {
     return null;
   }
 
