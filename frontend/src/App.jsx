@@ -19,6 +19,7 @@ import Followers from "./pages/Followers.jsx";
 import Following from "./pages/Following.jsx";
 import Explore from "./pages/Explore.jsx";
 import Notifications from "./pages/Notifications.jsx";
+import Search from "./pages/Search.jsx";
 export default function App() {
   return (
     <Routes>
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/profile/:id/followers" element={<Followers />} />
         <Route path="/profile/:id/following" element={<Following />} />
         <Route path="/explore" element={<Explore />} />
+        <Route path="/search" element={<Search />} />
         <Route path="/notifications" element={<Notifications />} />
       </Route>
 

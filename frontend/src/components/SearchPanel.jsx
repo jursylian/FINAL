@@ -1,0 +1,178 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { request } from "../lib/apiClient.js";
+import UserAvatar from "./UserAvatar.jsx";
+import {
+  addRecent,
+  clearRecent,
+  getRecent,
+  removeRecent,
+} from "../lib/recentSearches.js";
+
+export default function SearchPanel() {
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+  const [items, setItems] = useState([]);
+  const [recent, setRecent] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setRecent(getRecent());
+  }, []);
+
+  useEffect(() => {
+    const query = q.trim();
+    if (!query) {
+      setItems([]);
+      setError(null);
+      return;
+    }
+
+    const handle = setTimeout(async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await request(
+          `/search/users?q=${encodeURIComponent(query)}`,
+        );
+        setItems(data.items || []);
+      } catch (err) {
+        setError(err.message || "Search failed.");
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(handle);
+  }, [q]);
+
+  return (
+    <div>
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Search"
+        className="h-[40px] w-full rounded-[10px] border border-[#DBDBDB] bg-[#FAFAFA] px-3 text-[14px]"
+      />
+      {loading ? (
+        <div className="mt-3 text-[12px] text-[#8E8E8E]">Searching...</div>
+      ) : null}
+      {error ? (
+        <div className="mt-3 text-[12px] text-red-500">{error}</div>
+      ) : null}
+      {!loading && !error && items.length === 0 && q.trim() && (
+        <div className="mt-3 text-[12px] text-[#8E8E8E]">No users found</div>
+      )}
+      <div className="mt-4 flex flex-col gap-3">
+        {!q.trim() ? (
+          <>
+            <div className="flex items-center justify-between">
+              <div className="text-[12px] font-semibold text-[#262626]">
+                Recent
+              </div>
+              {recent.length ? (
+                <button
+                  type="button"
+                  onClick={() => setRecent(clearRecent())}
+                  className="text-[12px] text-[#0095F6] hover:opacity-70"
+                >
+                  Clear all
+                </button>
+              ) : null}
+            </div>
+            {recent.length === 0 ? (
+              <div className="text-[12px] text-[#8E8E8E]">
+                No recent searches.
+              </div>
+            ) : null}
+            {recent.map((u) => (
+              <div
+                key={u.userId}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  setRecent(addRecent(u));
+                  navigate(`/profile/${u.userId}`);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setRecent(addRecent(u));
+                    navigate(`/profile/${u.userId}`);
+                  }
+                }}
+                className="flex items-center gap-3 cursor-pointer"
+              >
+                <UserAvatar
+                  user={{ _id: u.userId, avatar: u.avatarUrl }}
+                  size={40}
+                />
+                <div className="flex-1">
+                  <div className="text-[13px] font-semibold text-[#262626]">
+                    {u.username}
+                  </div>
+                  <div className="text-[12px] text-[#8E8E8E]">
+                    {u.displayName || ""}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setRecent(removeRecent(u.userId));
+                  }}
+                  className="text-[12px] text-[#8E8E8E] hover:text-[#262626]"
+                  aria-label="Remove from recent"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </>
+        ) : (
+          items.map((u) => (
+            <div
+              key={u._id}
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                const next = addRecent({
+                  userId: u._id,
+                  username: u.username,
+                  avatarUrl: u.avatar,
+                  displayName: u.name || "",
+                });
+                setRecent(next);
+                navigate(`/profile/${u._id}`);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  const next = addRecent({
+                    userId: u._id,
+                    username: u.username,
+                    avatarUrl: u.avatar,
+                    displayName: u.name || "",
+                  });
+                  setRecent(next);
+                  navigate(`/profile/${u._id}`);
+                }
+              }}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <UserAvatar user={u} size={40} />
+              <div>
+                <div className="text-[13px] font-semibold text-[#262626]">
+                  {u.username}
+                </div>
+                <div className="text-[12px] text-[#8E8E8E]">{u.name || ""}</div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

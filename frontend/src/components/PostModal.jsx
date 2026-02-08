@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
@@ -15,6 +16,7 @@ export default function PostModal({
   focusCommentId = null,
 }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [stats, setStats] = useState({ likes: 0, liked: false });
   const [comments, setComments] = useState([]);
@@ -27,6 +29,13 @@ export default function PostModal({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState(null);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const ownerId =
+    post?.authorId?._id ||
+    post?.authorId ||
+    post?.userId?._id ||
+    post?.userId ||
+    post?.ownerId;
+  const isOwner = ownerId && user?._id && String(ownerId) === String(user._id);
 
   useEffect(() => {
     if (!postId) return;
@@ -197,14 +206,16 @@ export default function PostModal({
             <div className="text-sm font-semibold">
               {post?.authorId?.username || "user"}
             </div>
-            <button
-              type="button"
-              onClick={() => setActionsOpen(true)}
-              className="ml-auto text-[#8E8E8E]"
-              aria-label="More options"
-            >
-              ...
-            </button>
+            {isOwner ? (
+              <button
+                type="button"
+                onClick={() => setActionsOpen(true)}
+                className="ml-auto text-[#8E8E8E]"
+                aria-label="More options"
+              >
+                ...
+              </button>
+            ) : null}
           </div>
 
           <div
@@ -278,11 +289,11 @@ export default function PostModal({
 
             <form
             onSubmit={handleAddComment}
-            className="border-t border-[#DBDBDB] px-5 py-3"
+            className="relative z-[1] border-t border-[#DBDBDB] px-5 py-3 pointer-events-auto"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 pointer-events-auto">
               <img src="/images/Smile.svg" alt="Emoji" />
-              <div className="flex h-10 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-4 text-sm text-[#262626]">
+              <div className="flex h-10 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-4 text-sm text-[#262626] pointer-events-auto">
                 <input
                   value={commentText}
                   onChange={(event) => setCommentText(event.target.value)}
@@ -313,25 +324,29 @@ export default function PostModal({
             className="pointer-events-auto w-[360px] max-w-[90vw] overflow-hidden rounded-2xl bg-white text-center shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={deleteLoading}
-              className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm font-semibold text-red-500 disabled:opacity-60"
-            >
-              Delete
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActionsOpen(false);
-                onClose?.();
-                onEdit?.(post);
-              }}
-              className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
-            >
-              Edit
-            </button>
+            {isOwner ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleteLoading}
+                  className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm font-semibold text-red-500 disabled:opacity-60"
+                >
+                  Delete
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActionsOpen(false);
+                    onClose?.();
+                    onEdit?.(post);
+                  }}
+                  className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
+                >
+                  Edit
+                </button>
+              </>
+            ) : null}
             <button
               type="button"
               onClick={() => {
