@@ -38,6 +38,7 @@ export default function App() {
         }
       >
         <Route path="/" element={<Feed />} />
+        <Route path="/create" element={<PostCreate />} />
         <Route path="/posts/new" element={<PostCreate />} />
         <Route path="/post/:id" element={<PostDetail />} />
         <Route path="/profile/:id" element={<Profile />} />

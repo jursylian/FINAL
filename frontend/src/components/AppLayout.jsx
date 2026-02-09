@@ -16,8 +16,11 @@ export default function AppLayout() {
   const [panel, setPanel] = useState(null);
   const panelOpen = panel !== null;
   const [createOpen, setCreateOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isHome = location.pathname === "/";
+  const isProfile = location.pathname.startsWith("/profile");
+  const isNotifications = location.pathname.startsWith("/notifications");
+  const isCreate =
+    location.pathname === "/create" || location.pathname === "/posts/new";
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -37,6 +40,25 @@ export default function AppLayout() {
       setPanel(null);
     }
   }, [isDesktop]);
+
+  useEffect(() => {
+    const shouldOpen = Boolean(location.state?.createOpen);
+    if (!shouldOpen) return;
+    if (isDesktop) {
+      setCreateOpen(true);
+    } else {
+      navigate("/create", { replace: true, state: { from: location.pathname } });
+    }
+    navigate(".", { replace: true, state: null });
+  }, [isDesktop, location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (!createOpen || isDesktop) return;
+    setCreateOpen(false);
+    if (location.pathname !== "/create") {
+      navigate("/create", { replace: true, state: { from: location.pathname } });
+    }
+  }, [createOpen, isDesktop, location.pathname, navigate]);
 
   useEffect(() => {
     if (isDesktop && location.pathname === "/search") {
@@ -109,36 +131,7 @@ export default function AppLayout() {
       />
 
       <div className="flex">
-        <button
-          type="button"
-          onClick={() => setMobileMenuOpen(true)}
-          className="fixed left-3 top-3 z-50 flex h-9 w-9 items-center justify-center rounded-full border border-[#DBDBDB] bg-white md:hidden"
-        >
-          <span className="sr-only">Open menu</span>
-          <div className="flex flex-col items-center gap-1">
-            <span className="h-[2px] w-4 bg-[#262626]" />
-            <span className="h-[2px] w-4 bg-[#262626]" />
-            <span className="h-[2px] w-4 bg-[#262626]" />
-          </div>
-        </button>
-
-        <div
-          onClick={() => setMobileMenuOpen(false)}
-          className={[
-            "fixed inset-0 z-40 bg-black/40 md:hidden",
-            "transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-            mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none",
-          ].join(" ")}
-        />
-
-        <div
-          className={[
-            "fixed inset-y-0 left-0 z-50 md:static",
-            "transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-            mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
-            "md:translate-x-0",
-          ].join(" ")}
-        >
+        <div className="hidden md:block fixed inset-y-0 left-0 z-50 md:static">
           <Sidebar
             user={user}
             onLogout={logout}
@@ -149,28 +142,23 @@ export default function AppLayout() {
             exploreActive={location.pathname === "/explore" && !panelOpen}
             onHome={() => {
               setPanel(null);
-              setMobileMenuOpen(false);
               navigate("/");
             }}
             onToggleSearch={() => {
               togglePanel("search");
-              setMobileMenuOpen(false);
             }}
             onToggleNotifications={() => {
               togglePanel("notifications");
-              setMobileMenuOpen(false);
             }}
             onCreate={() => {
               if (isDesktop) {
                 setCreateOpen(true);
               } else {
-                navigate("/posts/new");
+                navigate("/create", { state: { from: location.pathname } });
               }
-              setMobileMenuOpen(false);
             }}
             onNavigate={() => {
               setPanel(null);
-              setMobileMenuOpen(false);
             }}
           />
         </div>
@@ -180,12 +168,38 @@ export default function AppLayout() {
           {panel === "notifications" && <NotificationsList />}
         </LeftPanelFixed>
 
-        <main className="flex-1 pb-[158px] md:pb-[158px] md:ml-[78px]">
+        <main className="flex-1 pt-[56px] pb-[56px] sm:pt-0 sm:pb-[158px] md:ml-[78px]">
           <Outlet />
         </main>
       </div>
 
+      <MobileTopBar
+        notifCount={unreadCount}
+        notificationsActive={isNotifications}
+        createActive={isCreate || createOpen}
+        onCreate={() => {
+          if (isDesktop) {
+            setCreateOpen(true);
+          } else {
+            navigate("/create", { state: { from: location.pathname } });
+          }
+        }}
+        onNotifications={() => {
+          if (isDesktop) {
+            togglePanel("notifications");
+          } else {
+            navigate("/notifications");
+          }
+        }}
+      />
+
       <FooterNav
+        homeActive={isHome && !panelOpen}
+        searchActive={isDesktop ? panel === "search" : location.pathname === "/search"}
+        exploreActive={location.pathname === "/explore" && !panelOpen}
+        profileActive={isProfile}
+        profileHref={user?._id ? `/profile/${user._id}` : "/"}
+        profileAvatar={user?.avatar}
         onHome={() => {
           setPanel(null);
           navigate("/");
@@ -201,7 +215,7 @@ export default function AppLayout() {
           if (isDesktop) {
             setCreateOpen(true);
           } else {
-            navigate("/posts/new");
+            navigate("/create", { state: { from: location.pathname } });
           }
         }}
       />
@@ -239,7 +253,95 @@ function LeftPanelFixed({ open, title, children }) {
   );
 }
 
+function MobileIconButton({
+  to,
+  onClick,
+  label,
+  disabled = false,
+  className = "",
+  children,
+}) {
+  const baseClass = [
+    "relative flex h-11 w-11 items-center justify-center rounded-full",
+    "hover:bg-[#EFEFEF] active:bg-[#DBDBDB]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0095F6]/40",
+    disabled ? "opacity-60" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (to) {
+    return (
+      <Link to={to} className={baseClass} aria-label={label}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={baseClass}
+      aria-label={label}
+      disabled={disabled}
+    >
+      {children}
+    </button>
+  );
+}
+
+function MobileTopBar({
+  onCreate,
+  onNotifications,
+  notifCount = 0,
+  notificationsActive = false,
+  createActive = false,
+}) {
+  const badgeText = notifCount > 99 ? "99+" : String(notifCount);
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-50 h-[56px] border-b border-[#DBDBDB] bg-white sm:hidden">
+      <div className="flex h-full items-center justify-between px-4">
+        <MobileIconButton
+          onClick={onCreate}
+          label="Create"
+          className={
+            createActive
+              ? "rounded-[10px] bg-[#262626] hover:bg-[#262626] active:bg-[#1f1f1f]"
+              : ""
+          }
+        >
+          <img
+            src="/images/Add.svg"
+            className={["h-6 w-6", createActive ? "invert" : ""].join(" ")}
+          />
+        </MobileIconButton>
+        <div className="text-[14px] font-semibold text-[#262626]">ICHgram</div>
+        <MobileIconButton onClick={onNotifications} label="Notifications">
+          <img
+            src={notificationsActive ? "/images/Like_active.svg" : "/images/Like.svg"}
+            className="h-6 w-6"
+          />
+          {notifCount > 0 ? (
+            <span className="absolute -right-1 -top-1 flex min-w-[16px] items-center justify-center rounded-full bg-[#0095F6] px-1 text-[9px] font-semibold text-white">
+              {badgeText}
+            </span>
+          ) : null}
+        </MobileIconButton>
+      </div>
+    </div>
+  );
+}
+
 function FooterNav({
+  homeActive,
+  searchActive,
+  exploreActive,
+  profileActive,
+  profileHref,
+  profileAvatar,
   onHome,
   onSearch,
   onExplore,
@@ -249,11 +351,47 @@ function FooterNav({
 }) {
   const linkClass =
     "text-[12px] text-[#737373] hover:text-[#262626] transition";
+  const iconClass = "h-6 w-6";
+  const iconActive = "opacity-100";
+  const iconInactive = "opacity-60";
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white h-[158px]">
-      <div className="flex flex-col items-center px-4 md:px-6 md:pb-6">
-        <div className="flex h-[44px] w-full items-center justify-between md:w-auto md:gap-8">
+    <footer className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white h-[56px] sm:h-[158px] border-t border-[#DBDBDB] sm:border-t-0">
+      <div className="flex flex-col items-center px-4 sm:px-4 md:px-6 sm:pb-6">
+        <div className="flex h-[56px] w-full items-center justify-between sm:hidden">
+          <MobileIconButton onClick={onHome} label="Home">
+            <img
+              src={homeActive ? "/images/Home_active.svg" : "/images/Home.svg"}
+              className={[iconClass, homeActive ? iconActive : iconInactive].join(" ")}
+            />
+          </MobileIconButton>
+          <MobileIconButton onClick={onSearch} label="Search">
+            <img
+              src={searchActive ? "/images/Search_active.svg" : "/images/Search.svg"}
+              className={[iconClass, searchActive ? iconActive : iconInactive].join(" ")}
+            />
+          </MobileIconButton>
+          <MobileIconButton onClick={onExplore} label="Explore">
+            <img
+              src={exploreActive ? "/images/Explore_active.svg" : "/images/Explore.svg"}
+              className={[iconClass, exploreActive ? iconActive : iconInactive].join(" ")}
+            />
+          </MobileIconButton>
+          <MobileIconButton onClick={onMessages} label="Messages" disabled>
+            <img src="/images/Messages.svg" className={[iconClass, iconInactive].join(" ")} />
+          </MobileIconButton>
+          <MobileIconButton to={profileHref} label="Profile">
+            <img
+              src={profileAvatar || "/images/ICH.svg"}
+              className={[
+                "h-7 w-7 rounded-full border",
+                profileActive ? "border-2 border-[#0095F6]" : "border border-transparent",
+              ].join(" ")}
+            />
+          </MobileIconButton>
+        </div>
+
+        <div className="hidden sm:flex h-[44px] w-full items-center justify-between md:w-auto md:gap-8">
           <button onClick={onHome} className={linkClass}>
             Home
           </button>
@@ -273,7 +411,8 @@ function FooterNav({
             Notifications
           </button>
         </div>
-        <div className="mt-[45px] text-center text-[12px] text-[#737373]">
+
+        <div className="hidden sm:block mt-[45px] text-center text-[12px] text-[#737373]">
           © {new Date().getFullYear()} ICHgram
         </div>
       </div>

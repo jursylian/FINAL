@@ -109,7 +109,7 @@ export default function Profile() {
       if (isDesktop) {
         setCreateOpen(true);
       } else {
-        navigate("/posts/new");
+        navigate("/create", { state: { from: location.pathname } });
       }
       navigate(".", { replace: true, state: null });
     }

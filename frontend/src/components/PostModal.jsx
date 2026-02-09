@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { MoreHorizontal } from "lucide-react";
 
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
@@ -161,7 +162,19 @@ export default function PostModal({
     onClose?.();
   }
 
-  const commentsRef = React.useRef(null);
+  const commentsRef = useRef(null);
+  const actionsRef = useRef(null);
+
+  useEffect(() => {
+    if (!actionsOpen) return;
+    const handleKey = (event) => {
+      if (event.key === "Escape") {
+        setActionsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [actionsOpen]);
 
   useEffect(() => {
     if (!focusCommentId || !commentsRef.current) return;
@@ -210,10 +223,10 @@ export default function PostModal({
               <button
                 type="button"
                 onClick={() => setActionsOpen(true)}
-                className="ml-auto text-[#8E8E8E]"
+                className="ml-auto flex h-10 w-10 items-center justify-center rounded-full text-[#262626] hover:bg-[#EFEFEF] active:bg-[#DBDBDB]"
                 aria-label="More options"
               >
-                ...
+                <MoreHorizontal className="h-6 w-6" />
               </button>
             ) : null}
           </div>
@@ -319,11 +332,17 @@ export default function PostModal({
       </ModalWindow>
 
       {actionsOpen ? (
-        <div className="absolute inset-0 z-[92] flex items-center justify-center pointer-events-none">
-          <div
-            className="pointer-events-auto w-[360px] max-w-[90vw] overflow-hidden rounded-2xl bg-white text-center shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
+        <div
+          className="fixed inset-0 z-[200]"
+          onClick={() => setActionsOpen(false)}
+        >
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative z-[201] flex h-full w-full items-center justify-center">
+            <div
+              ref={actionsRef}
+              className="w-[360px] max-w-[90vw] overflow-hidden rounded-2xl bg-white text-center shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
             {isOwner ? (
               <>
                 <button
@@ -375,6 +394,7 @@ export default function PostModal({
             >
               Cancel
             </button>
+            </div>
           </div>
         </div>
       ) : null}

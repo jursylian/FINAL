@@ -11,6 +11,8 @@ export default function PostCreateContent({
   onCreated,
   onUpdated,
   showBack,
+  autoOpenPicker = false,
+  pickerLabel,
   post,
 }) {
   const { user } = useAuth();
@@ -91,6 +93,14 @@ export default function PostCreateContent({
   function handleOpenPicker() {
     inputRef.current?.click();
   }
+
+  useEffect(() => {
+    if (!autoOpenPicker || isEditing || previewUrl) return;
+    const timer = setTimeout(() => {
+      inputRef.current?.click();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [autoOpenPicker, isEditing, previewUrl]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -257,6 +267,11 @@ export default function PostCreateContent({
                 alt="Cloud"
                 className="h-33 w-33 cursor-pointer"
               />
+              {pickerLabel ? (
+                <span className="text-[14px] font-semibold text-[#262626]">
+                  {pickerLabel}
+                </span>
+              ) : null}
             </button>
           )}
           <input
