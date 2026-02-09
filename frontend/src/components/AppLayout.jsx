@@ -6,6 +6,9 @@ import NotificationsList from "./NotificationsList.jsx";
 import PostCreateModal from "./PostCreateModal.jsx";
 import useIsDesktop from "../lib/useIsDesktop.js";
 import SearchPanel from "./SearchPanel.jsx";
+import { request } from "../lib/apiClient.js";
+import { DEFAULT_LIMIT } from "../lib/constants.js";
+import UserAvatar from "./UserAvatar.jsx";
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
@@ -16,6 +19,14 @@ export default function AppLayout() {
   const [panel, setPanel] = useState(null);
   const panelOpen = panel !== null;
   const [createOpen, setCreateOpen] = useState(false);
+  const [mobileViewerOpen, setMobileViewerOpen] = useState(false);
+  const [commentsPostId, setCommentsPostId] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [commentsTotal, setCommentsTotal] = useState(0);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentError, setCommentError] = useState(null);
+  const [commentText, setCommentText] = useState("");
+  const [commentSending, setCommentSending] = useState(false);
   const isHome = location.pathname === "/";
   const isProfile = location.pathname.startsWith("/profile");
   const isNotifications = location.pathname.startsWith("/notifications");
@@ -47,7 +58,10 @@ export default function AppLayout() {
     if (isDesktop) {
       setCreateOpen(true);
     } else {
-      navigate("/create", { replace: true, state: { from: location.pathname } });
+      navigate("/create", {
+        replace: true,
+        state: { from: location.pathname },
+      });
     }
     navigate(".", { replace: true, state: null });
   }, [isDesktop, location.pathname, location.state, navigate]);
@@ -56,7 +70,10 @@ export default function AppLayout() {
     if (!createOpen || isDesktop) return;
     setCreateOpen(false);
     if (location.pathname !== "/create") {
-      navigate("/create", { replace: true, state: { from: location.pathname } });
+      navigate("/create", {
+        replace: true,
+        state: { from: location.pathname },
+      });
     }
   }, [createOpen, isDesktop, location.pathname, navigate]);
 
@@ -105,6 +122,63 @@ export default function AppLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    function handleOpen() {
+      setMobileViewerOpen(true);
+    }
+    function handleClose() {
+      setMobileViewerOpen(false);
+    }
+    window.addEventListener("mobile-viewer:open", handleOpen);
+    window.addEventListener("mobile-viewer:close", handleClose);
+    return () => {
+      window.removeEventListener("mobile-viewer:open", handleOpen);
+      window.removeEventListener("mobile-viewer:close", handleClose);
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleOpen(event) {
+      if (isDesktop) return;
+      const postId = event?.detail;
+      if (!postId) return;
+      setCommentsPostId(postId);
+    }
+    function handleClose() {
+      setCommentsPostId(null);
+      setCommentText("");
+      setCommentError(null);
+    }
+    window.addEventListener("comments:open", handleOpen);
+    window.addEventListener("comments:close", handleClose);
+    return () => {
+      window.removeEventListener("comments:open", handleOpen);
+      window.removeEventListener("comments:close", handleClose);
+    };
+  }, [isDesktop]);
+
+  useEffect(() => {
+    async function loadComments() {
+      if (!commentsPostId) return;
+      setCommentsLoading(true);
+      setCommentError(null);
+      try {
+        const data = await request(
+          `/posts/${commentsPostId}/comments?limit=${DEFAULT_LIMIT}`,
+        );
+        setComments(data.items || []);
+        setCommentsTotal(typeof data.total === "number" ? data.total : 0);
+      } catch (err) {
+        setCommentError(err.message || "Unable to load comments.");
+      } finally {
+        setCommentsLoading(false);
+      }
+    }
+    if (commentsPostId) {
+      loadComments();
+    }
+  }, [commentsPostId]);
+
   function togglePanel(type) {
     if (!isDesktop && type === "notifications") {
       setPanel(null);
@@ -117,6 +191,33 @@ export default function AppLayout() {
       return;
     }
     setPanel((prev) => (prev === type ? null : type));
+  }
+
+  async function handleAddComment(event) {
+    event.preventDefault();
+    if (!commentsPostId || commentSending) return;
+    const text = commentText.trim();
+    if (!text) {
+      setCommentError("Please enter a comment.");
+      return;
+    }
+    setCommentError(null);
+    setCommentSending(true);
+    try {
+      const data = await request(`/posts/${commentsPostId}/comments`, {
+        method: "POST",
+        body: JSON.stringify({ text }),
+      });
+      if (data.comment) {
+        setComments((prev) => [data.comment, ...prev]);
+        setCommentsTotal((prev) => prev + 1);
+        setCommentText("");
+      }
+    } catch (err) {
+      setCommentError(err.message || "Unable to add a comment.");
+    } finally {
+      setCommentSending(false);
+    }
   }
 
   return (
@@ -173,52 +274,127 @@ export default function AppLayout() {
         </main>
       </div>
 
-      <MobileTopBar
-        notifCount={unreadCount}
-        notificationsActive={isNotifications}
-        createActive={isCreate || createOpen}
-        onCreate={() => {
-          if (isDesktop) {
-            setCreateOpen(true);
-          } else {
-            navigate("/create", { state: { from: location.pathname } });
-          }
-        }}
-        onNotifications={() => {
-          if (isDesktop) {
-            togglePanel("notifications");
-          } else {
-            navigate("/notifications");
-          }
-        }}
-      />
+      {!mobileViewerOpen ? (
+        <MobileTopBar
+          notifCount={unreadCount}
+          notificationsActive={isNotifications}
+          createActive={isCreate || createOpen}
+          onCreate={() => {
+            if (isDesktop) {
+              setCreateOpen(true);
+            } else {
+              navigate("/create", { state: { from: location.pathname } });
+            }
+          }}
+          onNotifications={() => {
+            if (isDesktop) {
+              togglePanel("notifications");
+            } else {
+              navigate("/notifications");
+            }
+          }}
+        />
+      ) : null}
 
-      <FooterNav
-        homeActive={isHome && !panelOpen}
-        searchActive={isDesktop ? panel === "search" : location.pathname === "/search"}
-        exploreActive={location.pathname === "/explore" && !panelOpen}
-        profileActive={isProfile}
-        profileHref={user?._id ? `/profile/${user._id}` : "/"}
-        profileAvatar={user?.avatar}
-        onHome={() => {
-          setPanel(null);
-          navigate("/");
-        }}
-        onSearch={() => togglePanel("search")}
-        onExplore={() => {
-          setPanel(null);
-          navigate("/explore");
-        }}
-        onMessages={() => {}}
-        onNotifications={() => togglePanel("notifications")}
-        onCreate={() => {
-          if (isDesktop) {
-            setCreateOpen(true);
-          } else {
-            navigate("/create", { state: { from: location.pathname } });
+      {!mobileViewerOpen ? (
+        <FooterNav
+          homeActive={isHome && !panelOpen}
+          searchActive={
+            isDesktop ? panel === "search" : location.pathname === "/search"
           }
-        }}
-      />
+          exploreActive={location.pathname === "/explore" && !panelOpen}
+          profileActive={isProfile}
+          profileHref={user?._id ? `/profile/${user._id}` : "/"}
+          profileAvatar={user?.avatar}
+          onHome={() => {
+            setPanel(null);
+            navigate("/");
+          }}
+          onSearch={() => togglePanel("search")}
+          onExplore={() => {
+            setPanel(null);
+            navigate("/explore");
+          }}
+          onMessages={() => {}}
+          onNotifications={() => togglePanel("notifications")}
+          onCreate={() => {
+            if (isDesktop) {
+              setCreateOpen(true);
+            } else {
+              navigate("/create", { state: { from: location.pathname } });
+            }
+          }}
+        />
+      ) : null}
+
+      {commentsPostId ? (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 z-[9998] sm:hidden"
+            onClick={() => setCommentsPostId(null)}
+          />
+          <div className="fixed left-0 right-0 bottom-0 h-[70vh] bg-white rounded-t-2xl z-[9999] overflow-hidden sm:hidden">
+            <div className="flex h-[50px] items-center justify-between border-b border-[#DBDBDB] px-4">
+              <button
+                type="button"
+                onClick={() => setCommentsPostId(null)}
+                className="text-[14px] text-[#262626]"
+              >
+                Back
+              </button>
+              <div className="text-[14px] font-semibold">Comments</div>
+              <div className="w-10" />
+            </div>
+            <div className="h-[calc(70vh-50px-64px)] overflow-auto px-4 py-3">
+              {commentsLoading ? (
+                <div className="text-xs text-[#8E8E8E]">Loading...</div>
+              ) : null}
+              {commentError ? (
+                <div className="text-xs text-red-500">
+                  {commentError || "Unable to load comments."}
+                </div>
+              ) : null}
+              {!commentsLoading && !commentError && comments.length === 0 ? (
+                <div className="text-xs text-[#8E8E8E]">No comments yet.</div>
+              ) : null}
+              {comments.map((comment) => (
+                <div key={comment._id} className="flex gap-3 py-2">
+                  <UserAvatar user={comment.userId} size={32} />
+                  <div className="text-sm text-[#262626]">
+                    <span className="font-semibold">
+                      {comment.userId?.username || "user"}
+                    </span>{" "}
+                    {comment.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <form
+              onSubmit={handleAddComment}
+              className="border-t border-[#DBDBDB] px-4 py-3"
+            >
+              <div className="flex items-center gap-3">
+                <UserAvatar user={user} size={28} />
+                <div className="flex h-10 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-4 text-sm text-[#262626]">
+                  <input
+                    value={commentText}
+                    onChange={(event) => setCommentText(event.target.value)}
+                    placeholder="Add a comment..."
+                    className="h-full w-full bg-transparent outline-none placeholder:text-[#8E8E8E]"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={commentSending}
+                  className="text-sm font-semibold text-[#0095F6] disabled:opacity-60"
+                >
+                  Post
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
+      ) : null}
 
       {createOpen && isDesktop ? (
         <PostCreateModal onClose={() => setCreateOpen(false)} />
@@ -321,7 +497,11 @@ function MobileTopBar({
         <div className="text-[14px] font-semibold text-[#262626]">ICHgram</div>
         <MobileIconButton onClick={onNotifications} label="Notifications">
           <img
-            src={notificationsActive ? "/images/Like_active.svg" : "/images/Like.svg"}
+            src={
+              notificationsActive
+                ? "/images/Like_active.svg"
+                : "/images/Like.svg"
+            }
             className="h-6 w-6"
           />
           {notifCount > 0 ? (
@@ -351,9 +531,9 @@ function FooterNav({
 }) {
   const linkClass =
     "text-[12px] text-[#737373] hover:text-[#262626] transition";
-  const iconClass = "h-6 w-6";
+  const iconClass = "h-6 w-6 filter brightness-0";
   const iconActive = "opacity-100";
-  const iconInactive = "opacity-60";
+  const iconInactive = "opacity-100";
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white h-[56px] sm:h-[158px] border-t border-[#DBDBDB] sm:border-t-0">
@@ -362,30 +542,53 @@ function FooterNav({
           <MobileIconButton onClick={onHome} label="Home">
             <img
               src={homeActive ? "/images/Home_active.svg" : "/images/Home.svg"}
-              className={[iconClass, homeActive ? iconActive : iconInactive].join(" ")}
+              className={[
+                iconClass,
+                homeActive ? iconActive : iconInactive,
+              ].join(" ")}
             />
           </MobileIconButton>
           <MobileIconButton onClick={onSearch} label="Search">
             <img
-              src={searchActive ? "/images/Search_active.svg" : "/images/Search.svg"}
-              className={[iconClass, searchActive ? iconActive : iconInactive].join(" ")}
+              src={
+                searchActive
+                  ? "/images/Search_active.svg"
+                  : "/images/Search.svg"
+              }
+              className={[
+                iconClass,
+                searchActive ? iconActive : iconInactive,
+              ].join(" ")}
             />
           </MobileIconButton>
           <MobileIconButton onClick={onExplore} label="Explore">
             <img
-              src={exploreActive ? "/images/Explore_active.svg" : "/images/Explore.svg"}
-              className={[iconClass, exploreActive ? iconActive : iconInactive].join(" ")}
+              src={
+                exploreActive
+                  ? "/images/Explore_active.svg"
+                  : "/images/Explore.svg"
+              }
+              className={[
+                iconClass,
+                exploreActive ? iconActive : iconInactive,
+              ].join(" ")}
             />
           </MobileIconButton>
-          <MobileIconButton onClick={onMessages} label="Messages" disabled>
-            <img src="/images/Messages.svg" className={[iconClass, iconInactive].join(" ")} />
+          <MobileIconButton onClick={onMessages} label="Messages">
+            <img
+              src="/images/Messages.svg"
+              className={[iconClass, iconInactive].join(" ")}
+            />
           </MobileIconButton>
           <MobileIconButton to={profileHref} label="Profile">
             <img
-              src={profileAvatar || "/images/ICH.svg"}
+              src="/images/Profile.svg"
               className={[
-                "h-7 w-7 rounded-full border",
-                profileActive ? "border-2 border-[#0095F6]" : "border border-transparent",
+                iconClass,
+                "rounded-full",
+                profileActive
+                  ? "border-2 border-[#0095F6]"
+                  : "border border-transparent",
               ].join(" ")}
             />
           </MobileIconButton>

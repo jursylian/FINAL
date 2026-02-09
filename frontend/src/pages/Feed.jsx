@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
 import FeedPost from "../components/FeedPost.jsx";
@@ -9,7 +8,6 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import useIsDesktop from "../lib/useIsDesktop.js";
 
 export default function Feed() {
-  const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const { token } = useAuth();
   const [items, setItems] = useState([]);
@@ -72,11 +70,12 @@ export default function Feed() {
 
   function handleOpenComments(id) {
     if (!id) return;
-    if (isDesktop) {
-      setModalPostId(id);
-    } else {
-      navigate(`/post/${id}`);
-    }
+    window.dispatchEvent(new CustomEvent("comments:open", { detail: id }));
+  }
+
+  function handleOpenPost(id) {
+    if (!id) return;
+    setModalPostId(id);
   }
 
   async function handleToggleLike(postId) {
@@ -121,7 +120,7 @@ export default function Feed() {
           </div>
         )}
 
-        <div className="mt-6 grid grid-cols-1 gap-x-[60px] gap-y-[70px] lg:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-x-[30px] gap-y-[22px] lg:grid-cols-2">
           {items.map((post) => (
             <FeedPost
               key={post._id}
@@ -129,6 +128,7 @@ export default function Feed() {
               likeLoading={likeLoadingIds.has(post._id)}
               onToggleLike={handleToggleLike}
               onOpenComments={handleOpenComments}
+              onOpenPost={handleOpenPost}
             />
           ))}
         </div>
@@ -137,7 +137,7 @@ export default function Feed() {
           <img
             src="/images/Done.svg"
             alt="Done"
-            className="h-23 w-23 cursor-pointer"
+            className="h-13 w-13 cursor-pointer"
           />
           <div className="text-center">
             <div className="text-[14px] font-semibold text-[#262626]">
@@ -149,11 +149,14 @@ export default function Feed() {
           </div>
         </div>
       </div>
-      {isDesktop && modalPostId ? (
+      {modalPostId ? (
         <PostModal
           postId={modalPostId}
+          allowMobile
           onClose={() => setModalPostId(null)}
-          onDeleted={(id) => setItems((prev) => prev.filter((p) => p._id !== id))}
+          onDeleted={(id) =>
+            setItems((prev) => prev.filter((p) => p._id !== id))
+          }
           onEdit={(post) => setEditPost(post)}
         />
       ) : null}
@@ -164,7 +167,9 @@ export default function Feed() {
           onClose={() => setEditPost(null)}
           onUpdated={(updated) => {
             setItems((prev) =>
-              prev.map((p) => (p._id === updated._id ? { ...p, ...updated } : p))
+              prev.map((p) =>
+                p._id === updated._id ? { ...p, ...updated } : p,
+              ),
             );
             setEditPost(null);
           }}

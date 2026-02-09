@@ -304,13 +304,9 @@ export default function Profile() {
                 key={post._id}
                 type="button"
                 onClick={() => {
-                  if (isDesktop) {
-                    setModalPostId(post._id);
-                  } else {
-                    navigate(`/post/${post._id}`);
-                  }
+                  setModalPostId(post._id);
                 }}
-                className="group relative aspect-square overflow-hidden bg-[#FAFAFA]"
+                className="relative aspect-square overflow-hidden bg-[#FAFAFA]"
               >
                 {post.image ? (
                   <img
@@ -320,22 +316,17 @@ export default function Profile() {
                     className="h-full w-full object-cover"
                   />
                 ) : null}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition group-hover:opacity-100">
-                  <div className="flex items-center gap-6 text-white font-semibold text-[14px]">
-                    <span>Likes {post.likesCount || 0}</span>
-                    <span>Comments {post.commentsCount || 0}</span>
-                  </div>
-                </div>
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {isDesktop && modalPostId ? (
+      {modalPostId ? (
         <PostModal
           postId={modalPostId}
           focusCommentId={focusCommentId}
+          allowMobile
           onClose={() => {
             setModalPostId(null);
             setFocusCommentId(null);

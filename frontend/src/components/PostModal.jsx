@@ -7,6 +7,7 @@ import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
 import { ModalStackRoot, ModalWindow } from "./ModalShell.jsx";
 import UserAvatar from "./UserAvatar.jsx";
+import useIsDesktop from "../lib/useIsDesktop.js";
 
 export default function PostModal({
   postId,
@@ -17,6 +18,7 @@ export default function PostModal({
   focusCommentId = null,
 }) {
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [stats, setStats] = useState({ likes: 0, liked: false });
@@ -65,7 +67,9 @@ export default function PostModal({
 
     async function loadComments() {
       try {
-        const data = await request(`/posts/${postId}/comments?limit=${DEFAULT_LIMIT}`);
+        const data = await request(
+          `/posts/${postId}/comments?limit=${DEFAULT_LIMIT}`,
+        );
         if (mounted) {
           setComments(data.items || []);
           setCommentsTotal(typeof data.total === "number" ? data.total : 0);
@@ -83,6 +87,14 @@ export default function PostModal({
       mounted = false;
     };
   }, [postId]);
+
+  useEffect(() => {
+    if (!postId || isDesktop) return;
+    window.dispatchEvent(new CustomEvent("mobile-viewer:open"));
+    return () => {
+      window.dispatchEvent(new CustomEvent("mobile-viewer:close"));
+    };
+  }, [postId, isDesktop]);
 
   async function handleToggleLike() {
     if (likeLoading) return;
@@ -192,144 +204,247 @@ export default function PostModal({
       onClose={handleOverlayClose}
       allowMobile={allowMobile}
     >
-      <ModalWindow preset="post" zClass="z-[91]">
-        <div className="relative h-full w-full overflow-hidden text-[#262626]">
-          <div className="relative flex h-full w-full flex-col md:flex-row">
-            <div className="h-[40vh] md:h-auto md:flex-1 bg-black shrink-0">
-          {loading ? (
-            <div className="flex h-full items-center justify-center text-sm text-white/70">
-              Loading...
-            </div>
-          ) : post?.image ? (
-            <img
-              src={post.image}
-              alt={post.caption || "post"}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-white/70">
-              No image
-            </div>
-          )}
-            </div>
-
-            <div className="flex w-full md:w-[424px] flex-col border-l border-[#DBDBDB] min-h-0 shrink-0">
-          <div className="flex items-center gap-3 border-b border-[#DBDBDB] px-5 py-4">
-            <UserAvatar user={post?.authorId} size={36} />
-            <div className="text-sm font-semibold">
-              {post?.authorId?.username || "user"}
-            </div>
-            {isOwner ? (
+      {!isDesktop ? (
+        <ModalWindow preset="post" zClass="z-[91]" fullScreen>
+          <div className="flex h-full w-full flex-col bg-white text-[#262626]">
+            <div className="flex h-[56px] items-center justify-between border-b border-[#DBDBDB] px-4">
+              <button
+                type="button"
+                onClick={() => onClose?.()}
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#EFEFEF] active:bg-[#DBDBDB]"
+                aria-label="Back"
+              >
+                <img src="/images/Back.svg" alt="Back" className="h-5 w-5" />
+              </button>
+              <div className="text-[14px] font-semibold">
+                {post?.authorId?.username || "Post"}
+              </div>
               <button
                 type="button"
                 onClick={() => setActionsOpen(true)}
-                className="ml-auto flex h-10 w-10 items-center justify-center rounded-full text-[#262626] hover:bg-[#EFEFEF] active:bg-[#DBDBDB]"
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#EFEFEF] active:bg-[#DBDBDB]"
                 aria-label="More options"
               >
-                <MoreHorizontal className="h-6 w-6" />
+                <span className="text-[22px] font-semibold leading-none">...</span>
               </button>
-            ) : null}
-          </div>
+            </div>
 
-          <div
-            ref={commentsRef}
-            className="flex-1 space-y-4 overflow-auto px-5 py-4"
-          >
-            {post?.caption ? (
-              <div className="flex gap-3">
-                <UserAvatar user={post?.authorId} size={36} />
-                <div className="text-sm text-[#262626]">
-                  <span className="font-semibold">
-                    {post?.authorId?.username || "user"}
-                  </span>{" "}
-                  {post.caption}
+            <div className="flex-1 bg-white">
+              {loading ? (
+                <div className="flex h-full items-center justify-center text-sm text-[#8E8E8E]">
+                  Loading...
                 </div>
-              </div>
-            ) : null}
-
-            {commentError ? (
-              <div className="text-xs text-red-500">{commentError}</div>
-            ) : null}
-
-            {comments.map((comment) => (
-              <div
-                key={comment._id}
-                data-comment-id={comment._id}
-                className="flex gap-3"
-              >
-                <UserAvatar user={comment.userId} size={36} />
-                <div className="text-sm text-[#262626]">
-                  <span className="font-semibold">
-                    {comment.userId?.username || "user"}
-                  </span>{" "}
-                  {comment.text}
-                </div>
-              </div>
-            ))}
-            {commentsTotal > comments.length ? (
-              <div className="text-xs text-[#8E8E8E]">
-                Showing {comments.length} of {commentsTotal}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="border-t border-[#DBDBDB] px-5 py-3">
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={handleToggleLike}
-                disabled={likeLoading}
-                className="disabled:opacity-60"
-              >
+              ) : post?.image ? (
                 <img
-                  src={
-                    stats.liked ? "/images/Like_active.svg" : "/images/Like.svg"
-                  }
-                  alt="Like"
-                  className="h-6 w-6 cursor-pointer"
+                  src={post.image}
+                  alt={post.caption || "post"}
+                  className="h-full w-full object-contain"
                 />
-              </button>
-              <img
-                src="/images/Comment.svg"
-                alt="Comment"
-                className="h-6 w-6 cursor-pointer"
-              />
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-[#8E8E8E]">
+                  No image
+                </div>
+              )}
             </div>
-            <div className="mt-2 text-xs text-[#8E8E8E]">
-              Likes: <span className="font-semibold">{stats.likes}</span>
-            </div>
-          </div>
 
-            <form
-            onSubmit={handleAddComment}
-            className="relative z-[1] border-t border-[#DBDBDB] px-5 py-3 pointer-events-auto"
-          >
-            <div className="flex items-center gap-3 pointer-events-auto">
-              <img src="/images/Smile.svg" alt="Emoji" />
-              <div className="flex h-10 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-4 text-sm text-[#262626] pointer-events-auto">
-                <input
-                  value={commentText}
-                  onChange={(event) => setCommentText(event.target.value)}
-                  placeholder="Add a comment..."
-                  className="h-full w-full bg-transparent outline-none placeholder:text-[#8E8E8E]"
-                />
+            <div className="border-t border-[#DBDBDB] px-4 py-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleLike}
+                  disabled={likeLoading}
+                  className="disabled:opacity-60"
+                  aria-label="Like"
+                >
+                  <img
+                    src={
+                      stats.liked
+                        ? "/images/Like_active.svg"
+                        : "/images/Like.svg"
+                    }
+                    alt="Like"
+                    className="h-6 w-6"
+                  />
+                </button>
+                {(typeof post?.likesCount === "number"
+                  ? post.likesCount
+                  : stats.likes) > 0 ? (
+                  <span className="text-[14px] text-[#262626]">
+                    {typeof post?.likesCount === "number"
+                      ? post.likesCount
+                      : stats.likes}
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent("comments:open", { detail: postId }),
+                    );
+                  }}
+                  aria-label="Comments"
+                  className="flex items-center gap-2"
+                >
+                  <img
+                    src="/images/Comment.svg"
+                    alt="Comment"
+                    className="h-6 w-6"
+                  />
+                  {(commentsTotal || comments.length) > 0 ? (
+                    <span className="text-[14px] text-[#262626]">
+                      {commentsTotal || comments.length}
+                    </span>
+                  ) : null}
+                </button>
               </div>
-              <button
-                type="submit"
-                disabled={sending}
-                className="text-sm font-semibold text-[#0095F6] disabled:opacity-60"
-              >
-                Share
-              </button>
             </div>
-            {error ? (
-              <div className="mt-2 text-xs text-red-500">{error}</div>
-            ) : null}
-            </form>
+
           </div>
-        </div>
-      </div>
-      </ModalWindow>
+        </ModalWindow>
+      ) : (
+        <ModalWindow preset="post" zClass="z-[91]" fullScreen={!isDesktop}>
+          <div className="relative h-full w-full overflow-hidden text-[#262626]">
+            <div className="relative flex h-full w-full flex-col md:flex-row">
+              <div className="h-[40vh] md:h-auto md:flex-1 bg-white shrink-0">
+                {loading ? (
+                  <div className="flex h-full items-center justify-center text-sm text-[#8E8E8E]">
+                    Loading...
+                  </div>
+                ) : post?.image ? (
+                  <img
+                    src={post.image}
+                    alt={post.caption || "post"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-sm text-[#8E8E8E]">
+                    No image
+                  </div>
+                )}
+              </div>
+
+              <div className="flex w-full md:w-[424px] flex-col border-l border-[#DBDBDB] min-h-0 shrink-0">
+                <div className="flex items-center gap-3 border-b border-[#DBDBDB] px-5 py-4">
+                  <UserAvatar user={post?.authorId} size={36} />
+                  <div className="text-sm font-semibold">
+                    {post?.authorId?.username || "user"}
+                  </div>
+                  {isOwner ? (
+                    <button
+                      type="button"
+                      onClick={() => setActionsOpen(true)}
+                      className="ml-auto flex h-10 w-10 items-center justify-center rounded-full text-[#262626] hover:bg-[#EFEFEF] active:bg-[#DBDBDB]"
+                      aria-label="More options"
+                    >
+                      <MoreHorizontal className="h-6 w-6" />
+                    </button>
+                  ) : null}
+                </div>
+
+                <div
+                  ref={commentsRef}
+                  className="flex-1 space-y-4 overflow-auto px-5 py-4"
+                >
+                  {post?.caption ? (
+                    <div className="flex gap-3">
+                      <UserAvatar user={post?.authorId} size={36} />
+                      <div className="text-sm text-[#262626]">
+                        <span className="font-semibold">
+                          {post?.authorId?.username || "user"}
+                        </span>{" "}
+                        {post.caption}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {commentError ? (
+                    <div className="text-xs text-red-500">{commentError}</div>
+                  ) : null}
+
+                  {comments.map((comment) => (
+                    <div
+                      key={comment._id}
+                      data-comment-id={comment._id}
+                      className="flex gap-3"
+                    >
+                      <UserAvatar user={comment.userId} size={36} />
+                      <div className="text-sm text-[#262626]">
+                        <span className="font-semibold">
+                          {comment.userId?.username || "user"}
+                        </span>{" "}
+                        {comment.text}
+                      </div>
+                    </div>
+                  ))}
+                  {commentsTotal > comments.length ? (
+                    <div className="text-xs text-[#8E8E8E]">
+                      Showing {comments.length} of {commentsTotal}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="border-t border-[#DBDBDB] px-5 py-3">
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={handleToggleLike}
+                      disabled={likeLoading}
+                      className="disabled:opacity-60"
+                    >
+                      <img
+                        src={
+                          stats.liked
+                            ? "/images/Like_active.svg"
+                            : "/images/Like.svg"
+                        }
+                        alt="Like"
+                        className="h-6 w-6 cursor-pointer"
+                      />
+                    </button>
+                    <img
+                      src="/images/Comment.svg"
+                      alt="Comment"
+                      className="h-6 w-6 cursor-pointer"
+                    />
+                  </div>
+                  {stats.likes > 0 ? (
+                    <div className="mt-2 text-xs text-[#8E8E8E]">
+                      <span className="font-semibold">{stats.likes}</span>
+                    </div>
+                  ) : null}
+                </div>
+
+                <form
+                  onSubmit={handleAddComment}
+                  className="relative z-[1] border-t border-[#DBDBDB] px-5 py-3 pointer-events-auto"
+                >
+                  <div className="flex items-center gap-3 pointer-events-auto">
+                    <img src="/images/Smile.svg" alt="Emoji" />
+                    <div className="flex h-10 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-4 text-sm text-[#262626] pointer-events-auto">
+                      <input
+                        value={commentText}
+                        onChange={(event) => setCommentText(event.target.value)}
+                        placeholder="Add a comment..."
+                        className="h-full w-full bg-transparent outline-none placeholder:text-[#8E8E8E]"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={sending}
+                      className="text-sm font-semibold text-[#0095F6] disabled:opacity-60"
+                    >
+                      Share
+                    </button>
+                  </div>
+                  {error ? (
+                    <div className="mt-2 text-xs text-red-500">{error}</div>
+                  ) : null}
+                </form>
+              </div>
+            </div>
+          </div>
+        </ModalWindow>
+      )}
 
       {actionsOpen ? (
         <div
@@ -343,62 +458,64 @@ export default function PostModal({
               className="w-[360px] max-w-[90vw] overflow-hidden rounded-2xl bg-white text-center shadow-2xl"
               onClick={(event) => event.stopPropagation()}
             >
-            {isOwner ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={deleteLoading}
-                  className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm font-semibold text-red-500 disabled:opacity-60"
-                >
-                  Delete
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActionsOpen(false);
-                    onClose?.();
-                    onEdit?.(post);
-                  }}
-                  className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
-                >
-                  Edit
-                </button>
-              </>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => {
-                const authorId = post?.authorId?._id;
-                if (authorId) {
-                  navigate(`/profile/${authorId}`);
-                }
-                setActionsOpen(false);
-                onClose?.();
-              }}
-              className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
-            >
-              Go to post
-            </button>
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
-            >
-              Copy link
-            </button>
-            <button
-              type="button"
-              onClick={() => setActionsOpen(false)}
-              className="w-full px-6 py-4 text-sm text-[#262626]"
-            >
-              Cancel
-            </button>
+              {isOwner ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleteLoading}
+                    className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm font-semibold text-red-500 disabled:opacity-60"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionsOpen(false);
+                      onClose?.();
+                      onEdit?.(post);
+                    }}
+                    className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
+                  >
+                    Edit
+                  </button>
+                </>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  const authorId = post?.authorId?._id;
+                  if (authorId) {
+                    navigate(`/profile/${authorId}`);
+                  }
+                  setActionsOpen(false);
+                  onClose?.();
+                }}
+                className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
+              >
+                Go to post
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="w-full border-b border-[#EFEFEF] px-6 py-4 text-sm text-[#262626]"
+              >
+                Copy link
+              </button>
+              <button
+                type="button"
+                onClick={() => setActionsOpen(false)}
+                className="w-full px-6 py-4 text-sm text-[#262626]"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       ) : null}
-
     </ModalStackRoot>
   );
 }
+
+
+

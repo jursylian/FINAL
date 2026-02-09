@@ -174,9 +174,11 @@ export default function PostDetail() {
                   className="h-6 w-6 cursor-pointer"
                 />
               </button>
-              <div className="text-[14px] text-[#262626]">
-                <span className="font-semibold">{stats.likes}</span> likes
-              </div>
+              {stats.likes > 0 ? (
+                <div className="text-[14px] text-[#262626]">
+                  <span className="font-semibold">{stats.likes}</span>
+                </div>
+              ) : null}
             </div>
           </div>
         </article>

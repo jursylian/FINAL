@@ -45,8 +45,26 @@ export function ModalWindow({
   preset = "post",
   zClass = "z-[91]",
   className = "",
+  fullScreen = false,
   children,
 }) {
+  if (fullScreen) {
+    return (
+      <div className={["absolute inset-0", zClass].join(" ")}>
+        <div
+          onClick={(event) => event.stopPropagation()}
+          className={[
+            "h-full w-full overflow-hidden bg-white",
+            "rounded-none max-w-none max-h-none",
+            className,
+          ].join(" ")}
+        >
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   const sizeStyle =
     preset === "create"
       ? {
