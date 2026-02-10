@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
 import UserAvatar from "./UserAvatar.jsx";
+import UserLink from "./UserLink.jsx";
 import {
   addRecent,
   clearRecent,
@@ -105,14 +106,23 @@ export default function SearchPanel() {
                 }}
                 className="flex items-center gap-3 cursor-pointer"
               >
-                <UserAvatar
-                  user={{ _id: u.userId, avatar: u.avatarUrl }}
-                  size={40}
-                />
+                <UserLink
+                  userId={u.userId}
+                  ariaLabel="Open profile"
+                >
+                  <UserAvatar
+                    user={{ _id: u.userId, avatar: u.avatarUrl }}
+                    size={40}
+                  />
+                </UserLink>
                 <div className="flex-1">
-                  <div className="text-[13px] font-semibold text-[#262626]">
+                  <UserLink
+                    userId={u.userId}
+                    className="text-[13px] font-semibold text-[#262626]"
+                    ariaLabel="Open profile"
+                  >
                     {u.username}
-                  </div>
+                  </UserLink>
                   <div className="text-[12px] text-[#8E8E8E]">
                     {u.displayName || ""}
                   </div>
@@ -162,11 +172,17 @@ export default function SearchPanel() {
               }}
               className="flex items-center gap-3 cursor-pointer"
             >
-              <UserAvatar user={u} size={40} />
+              <UserLink userId={u._id} ariaLabel="Open profile">
+                <UserAvatar user={u} size={40} />
+              </UserLink>
               <div>
-                <div className="text-[13px] font-semibold text-[#262626]">
+                <UserLink
+                  userId={u._id}
+                  className="text-[13px] font-semibold text-[#262626]"
+                  ariaLabel="Open profile"
+                >
                   {u.username}
-                </div>
+                </UserLink>
                 <div className="text-[12px] text-[#8E8E8E]">{u.name || ""}</div>
               </div>
             </div>

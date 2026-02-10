@@ -2,13 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
+import UserLink from "./UserLink.jsx";
 
 function buildText(item) {
-  const name = item.actorId?.username || "user";
-  if (item.type === "like") return `${name} liked your post`;
-  if (item.type === "comment") return `${name} commented on your post`;
-  if (item.type === "follow") return `${name} started following you`;
-  return `${name} did something`;
+  if (item.type === "like") return "liked your post";
+  if (item.type === "comment") return "commented on your post";
+  if (item.type === "follow") return "started following you";
+  return "did something";
 }
 
 export default function NotificationsList() {
@@ -86,39 +86,52 @@ export default function NotificationsList() {
     <div className="flex flex-col gap-4">
       {items.map((notification) => (
         <div key={notification._id} className="flex items-center gap-3">
-          <div className="h-8 w-8 overflow-hidden rounded-full bg-[#DBDBDB]">
+          <UserLink
+            userId={notification.actorId?._id || notification.actorId}
+            className="h-8 w-8 overflow-hidden rounded-full bg-[#DBDBDB]"
+            ariaLabel="Open profile"
+          >
             <img
               src={notification.actorId?.avatar || "/images/ICH.svg"}
               alt={notification.actorId?.username || "user"}
               className="h-full w-full object-cover"
             />
-          </div>
+          </UserLink>
           <div className="flex-1">
-            <button
-              type="button"
-              onClick={() => {
-                if (notification.type === "follow") {
-                  const actorId = notification.actorId?._id;
-                  if (actorId) {
-                    navigate(`/profile/${actorId}`);
+            <div className="text-[13px] text-[#262626]">
+              <UserLink
+                userId={notification.actorId?._id || notification.actorId}
+                className="font-semibold"
+                ariaLabel="Open profile"
+              >
+                {notification.actorId?.username || "user"}
+              </UserLink>{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  if (notification.type === "follow") {
+                    const actorId = notification.actorId?._id;
+                    if (actorId) {
+                      navigate(`/profile/${actorId}`);
+                    }
+                    return;
                   }
-                  return;
-                }
-                const ownerId = notification.userId;
-                const postId = notification.postId || notification.entityId;
-                if (!ownerId || !postId) return;
-                const commentId =
-                  notification.commentId ||
-                  (notification.type === "comment" ? notification.entityId : "");
-                const search = new URLSearchParams();
-                search.set("post", postId);
-                if (commentId) search.set("comment", commentId);
-                navigate(`/profile/${ownerId}?${search.toString()}`);
-              }}
-              className="text-left text-[13px] text-[#262626] cursor-pointer transition hover:opacity-70"
-            >
-              {buildText(notification)}
-            </button>
+                  const ownerId = notification.userId;
+                  const postId = notification.postId || notification.entityId;
+                  if (!ownerId || !postId) return;
+                  const commentId =
+                    notification.commentId ||
+                    (notification.type === "comment" ? notification.entityId : "");
+                  const search = new URLSearchParams();
+                  search.set("post", postId);
+                  if (commentId) search.set("comment", commentId);
+                  navigate(`/profile/${ownerId}?${search.toString()}`);
+                }}
+                className="text-left cursor-pointer transition hover:opacity-70"
+              >
+                {buildText(notification)}
+              </button>
+            </div>
           </div>
           <button
             type="button"

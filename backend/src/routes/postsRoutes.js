@@ -27,7 +27,7 @@ router.post("/", auth, upload.single("image"), createPost);
 router.get("/:id", optionalAuth, getPost);
 router.post("/:id/like", auth, toggleLike);
 router.post("/:id/comments", auth, createComment);
-router.get("/:id/comments", listComments);
+router.get("/:id/comments", optionalAuth, listComments);
 router.patch("/:id", auth, updatePost);
 router.delete("/:id", auth, deletePost);
 

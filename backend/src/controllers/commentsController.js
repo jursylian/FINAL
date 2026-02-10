@@ -21,6 +21,7 @@ export async function createComment(req, res) {
 
     const comment = await Comment.create({ postId, userId, text });
     await comment.populate("userId", "username avatar name");
+    const commentObj = comment.toObject();
 
     if (String(post.authorId) !== String(userId)) {
       await Notification.create({
@@ -31,7 +32,13 @@ export async function createComment(req, res) {
       });
     }
 
-    return res.status(201).json({ comment });
+    return res.status(201).json({
+      comment: {
+        ...commentObj,
+        likesCount: commentObj.likes?.length || 0,
+        likedByMe: false,
+      },
+    });
   } catch (err) {
     return handleError(err, res);
   }
@@ -41,6 +48,7 @@ export async function listComments(req, res) {
   try {
     const postId = req.params.id;
     const { page, limit, skip } = parsePagination(req.query);
+    const userId = req.userId;
 
     const [items, total] = await Promise.all([
       Comment.find({ postId })
@@ -51,7 +59,59 @@ export async function listComments(req, res) {
       Comment.countDocuments({ postId }),
     ]);
 
-    return res.status(200).json({ items, page, limit, total });
+    const mapped = items.map((comment) => {
+      const obj = comment.toObject();
+      const likes = Array.isArray(obj.likes) ? obj.likes : [];
+      const likedByMe = userId
+        ? likes.some((id) => String(id) === String(userId))
+        : false;
+      return {
+        ...obj,
+        likesCount: likes.length,
+        likedByMe,
+      };
+    });
+
+    return res.status(200).json({ items: mapped, page, limit, total });
+  } catch (err) {
+    return handleError(err, res);
+  }
+}
+
+export async function toggleCommentLike(req, res) {
+  try {
+    const commentId = req.params.commentId;
+    const userId = req.userId;
+
+    const comment = await Comment.findById(commentId).populate(
+      "userId",
+      "username avatar name",
+    );
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    const alreadyLiked = comment.likes.some(
+      (id) => String(id) === String(userId),
+    );
+    if (alreadyLiked) {
+      comment.likes = comment.likes.filter(
+        (id) => String(id) !== String(userId),
+      );
+    } else {
+      comment.likes.push(userId);
+    }
+
+    await comment.save();
+    const obj = comment.toObject();
+
+    return res.status(200).json({
+      comment: {
+        ...obj,
+        likesCount: obj.likes?.length || 0,
+        likedByMe: !alreadyLiked,
+      },
+    });
   } catch (err) {
     return handleError(err, res);
   }

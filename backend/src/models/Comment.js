@@ -22,6 +22,15 @@ const commentSchema = new Schema(
       trim: true,
       maxlength: 500,
     },
+    likes: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

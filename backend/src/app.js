@@ -7,6 +7,7 @@ import searchRoutes from "./routes/searchRoutes.js";
 import exploreRoutes from "./routes/exploreRoutes.js";
 import notificationsRoutes from "./routes/notificationsRoutes.js";
 import feedRoutes from "./routes/feedRoutes.js";
+import commentsRoutes from "./routes/commentsRoutes.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/search", searchRoutes);
 app.use("/api/explore", exploreRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/feed", feedRoutes);
+app.use("/api/comments", commentsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });

@@ -64,7 +64,7 @@ export async function updateProfile(req, res) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    const allowedFields = ["name", "bio", "username", "email"];
+    const allowedFields = ["name", "bio", "username", "email", "website"];
     const updates = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {

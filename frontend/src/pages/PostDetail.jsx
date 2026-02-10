@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
+import UserLink from "../components/UserLink.jsx";
 
 export default function PostDetail() {
   const { id } = useParams();
@@ -159,9 +160,13 @@ export default function PostDetail() {
             />
           ) : null}
           <div className="grid gap-3 p-6">
-            <div className="text-[12px] text-[#8E8E8E]">
+            <UserLink
+              userId={post.authorId?._id || post.authorId}
+              className="text-[12px] text-[#8E8E8E]"
+              ariaLabel="Open profile"
+            >
               @{post.authorId?.username || "unknown"}
-            </div>
+            </UserLink>
             {post.caption ? (
               <div className="text-[14px] text-[#262626]">{post.caption}</div>
             ) : null}
@@ -222,7 +227,11 @@ export default function PostDetail() {
             ) : null}
             {comments.map((comment) => (
               <div key={comment._id} className="flex gap-3">
-                <div className="h-10 w-10 overflow-hidden rounded-full bg-[#DBDBDB]">
+                <UserLink
+                  userId={comment.userId?._id || comment.userId}
+                  className="h-10 w-10 overflow-hidden rounded-full bg-[#DBDBDB]"
+                  ariaLabel="Open profile"
+                >
                   {comment.userId?.avatar ? (
                     <img
                       src={comment.userId.avatar}
@@ -230,11 +239,15 @@ export default function PostDetail() {
                       className="h-full w-full object-cover"
                     />
                   ) : null}
-                </div>
+                </UserLink>
                 <div>
-                  <div className="text-[14px] font-semibold text-[#262626]">
+                  <UserLink
+                    userId={comment.userId?._id || comment.userId}
+                    className="text-[14px] font-semibold text-[#262626]"
+                    ariaLabel="Open profile"
+                  >
                     @{comment.userId?.username || "unknown"}
-                  </div>
+                  </UserLink>
                   <div className="text-[14px] text-[#262626]">
                     {comment.text}
                   </div>

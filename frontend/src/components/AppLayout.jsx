@@ -9,6 +9,7 @@ import SearchPanel from "./SearchPanel.jsx";
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
 import UserAvatar from "./UserAvatar.jsx";
+import UserLink from "./UserLink.jsx";
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
@@ -27,6 +28,7 @@ export default function AppLayout() {
   const [commentError, setCommentError] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [commentSending, setCommentSending] = useState(false);
+  const commentInputRef = React.useRef(null);
   const isHome = location.pathname === "/";
   const isProfile = location.pathname.startsWith("/profile");
   const isNotifications = location.pathname.startsWith("/notifications");
@@ -214,7 +216,15 @@ export default function AppLayout() {
         body: JSON.stringify({ text }),
       });
       if (data.comment) {
-        setComments((prev) => [data.comment, ...prev]);
+        const nextComment = {
+          ...data.comment,
+          likesCount:
+            typeof data.comment.likesCount === "number"
+              ? data.comment.likesCount
+              : 0,
+          likedByMe: Boolean(data.comment.likedByMe),
+        };
+        setComments((prev) => [nextComment, ...prev]);
         setCommentsTotal((prev) => prev + 1);
         setCommentText("");
         if (typeof window !== "undefined") {
@@ -225,6 +235,75 @@ export default function AppLayout() {
       setCommentError(err.message || "Unable to add a comment.");
     } finally {
       setCommentSending(false);
+    }
+  }
+
+  function handleReply(username) {
+    if (!username) return;
+    const mention = `@${username} `;
+    setCommentText((prev) => (prev.startsWith(mention) ? prev : mention));
+    requestAnimationFrame(() => {
+      commentInputRef.current?.focus();
+    });
+  }
+
+  function getCommentMeta(comment) {
+    const likesCount =
+      typeof comment.likesCount === "number"
+        ? comment.likesCount
+        : Array.isArray(comment.likes)
+          ? comment.likes.length
+          : 0;
+    const likedByMe =
+      typeof comment.likedByMe === "boolean"
+        ? comment.likedByMe
+        : Array.isArray(comment.likes) && user?._id
+          ? comment.likes.some((id) => String(id) === String(user._id))
+          : false;
+    return { likesCount, likedByMe };
+  }
+
+  async function handleToggleCommentLike(commentId) {
+    if (!commentId) return;
+    const snapshot = comments;
+    setComments((prev) =>
+      prev.map((comment) => {
+        if (comment._id !== commentId) return comment;
+        const { likesCount, likedByMe } = getCommentMeta(comment);
+        return {
+          ...comment,
+          likesCount: Math.max(0, likesCount + (likedByMe ? -1 : 1)),
+          likedByMe: !likedByMe,
+        };
+      }),
+    );
+
+    try {
+      const data = await request(`/comments/${commentId}/like`, {
+        method: "POST",
+      });
+      if (data?.comment) {
+        setComments((prev) =>
+          prev.map((comment) =>
+            comment._id === commentId
+              ? {
+                  ...comment,
+                  ...data.comment,
+                  likesCount:
+                    typeof data.comment.likesCount === "number"
+                      ? data.comment.likesCount
+                      : comment.likesCount,
+                  likedByMe:
+                    typeof data.comment.likedByMe === "boolean"
+                      ? data.comment.likedByMe
+                      : comment.likedByMe,
+                }
+              : comment,
+          ),
+        );
+      }
+    } catch (err) {
+      setComments(snapshot);
     }
   }
 
@@ -365,26 +444,86 @@ export default function AppLayout() {
               {!commentsLoading && !commentError && comments.length === 0 ? (
                 <div className="text-xs text-[#8E8E8E]">No comments yet.</div>
               ) : null}
-              {comments.map((comment) => (
-                <div key={comment._id} className="flex gap-3 py-2">
-                  <UserAvatar user={comment.userId} size={32} />
-                  <div className="text-sm text-[#262626]">
-                    <span className="font-semibold">
-                      {comment.userId?.username || "user"}
-                    </span>{" "}
-                    {comment.text}
+              {comments.map((comment) => {
+                const { likesCount, likedByMe } = getCommentMeta(comment);
+                return (
+                  <div key={comment._id} className="flex items-start gap-3 py-2">
+                    <UserLink
+                      userId={comment.userId?._id || comment.userId}
+                      className="h-8 w-8"
+                      ariaLabel="Open profile"
+                      stopPropagation={false}
+                    >
+                      <UserAvatar user={comment.userId} size={32} />
+                    </UserLink>
+                    <div className="flex-1">
+                      <div className="text-sm text-[#262626]">
+                        <UserLink
+                          userId={comment.userId?._id || comment.userId}
+                          className="font-semibold"
+                          ariaLabel="Open profile"
+                          stopPropagation={false}
+                        >
+                          {comment.userId?.username || "user"}
+                        </UserLink>{" "}
+                        {comment.text}
+                      </div>
+                      <div className="mt-1 flex items-center gap-3 text-[11px] text-[#8E8E8E]">
+                        {likesCount > 0 ? (
+                          <span>
+                            {likesCount === 1
+                              ? "1 like"
+                              : `${likesCount} likes`}
+                          </span>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleReply(comment.userId?.username || "")
+                          }
+                          className="text-[#8E8E8E]"
+                          aria-label="Reply to comment"
+                        >
+                          Reply
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleCommentLike(comment._id)}
+                      className="inline-flex items-center justify-center"
+                      aria-label="Like comment"
+                    >
+                      <img
+                        src={
+                          likedByMe
+                            ? "/images/Like_active.svg"
+                            : "/images/Like.svg"
+                        }
+                        alt="Like"
+                        className="h-[10px] w-[10px]"
+                      />
+                    </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <form
               onSubmit={handleAddComment}
               className="border-t border-[#DBDBDB] px-4 py-3"
             >
               <div className="flex items-center gap-3">
-                <UserAvatar user={user} size={28} />
+                <UserLink
+                  userId={user?._id}
+                  className="h-7 w-7"
+                  ariaLabel="Open profile"
+                  stopPropagation={false}
+                >
+                  <UserAvatar user={user} size={28} />
+                </UserLink>
                 <div className="flex h-10 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-4 text-sm text-[#262626]">
                   <input
+                    ref={commentInputRef}
                     value={commentText}
                     onChange={(event) => setCommentText(event.target.value)}
                     placeholder="Add a comment..."

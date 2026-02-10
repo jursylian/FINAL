@@ -5,6 +5,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
 import UserAvatar from "./UserAvatar.jsx";
+import UserLink from "./UserLink.jsx";
 
 export default function PostCreateContent({
   onClose,
@@ -287,10 +288,22 @@ export default function PostCreateContent({
 
         <div className="flex w-full md:w-[340px] flex-col">
           <div className="flex items-center gap-3 px-4 py-4">
-            <UserAvatar user={user} size={36} />
-            <div className="text-[14px] font-semibold text-[#262626]">
+            <UserLink
+              userId={user?._id}
+              className="h-9 w-9"
+              ariaLabel="Open profile"
+              stopPropagation={false}
+            >
+              <UserAvatar user={user} size={36} />
+            </UserLink>
+            <UserLink
+              userId={user?._id}
+              className="text-[14px] font-semibold text-[#262626]"
+              ariaLabel="Open profile"
+              stopPropagation={false}
+            >
               {user?.username || "user"}
-            </div>
+            </UserLink>
           </div>
 
           <div className="px-4 py-3 border-b border-[#DBDBDB]">
@@ -367,11 +380,23 @@ export default function PostCreateContent({
                   <div className="mt-3 flex max-h-[220px] flex-col gap-3 overflow-auto pr-1">
                     {comments.map((comment) => (
                       <div key={comment._id} className="flex gap-3">
-                        <UserAvatar user={comment.userId} size={28} />
+                        <UserLink
+                          userId={comment.userId?._id || comment.userId}
+                          className="h-7 w-7"
+                          ariaLabel="Open profile"
+                          stopPropagation={false}
+                        >
+                          <UserAvatar user={comment.userId} size={28} />
+                        </UserLink>
                         <div className="text-[12px] text-[#262626]">
-                          <span className="font-semibold">
+                          <UserLink
+                            userId={comment.userId?._id || comment.userId}
+                            className="font-semibold"
+                            ariaLabel="Open profile"
+                            stopPropagation={false}
+                          >
                             {comment.userId?.username || "user"}
-                          </span>{" "}
+                          </UserLink>{" "}
                           {comment.text}
                         </div>
                       </div>

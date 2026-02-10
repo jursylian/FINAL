@@ -36,6 +36,12 @@ const userSchema = new Schema(
       trim: true,
       maxlength: 160,
     },
+    website: {
+      type: String,
+      trim: true,
+      maxlength: 200,
+      default: "",
+    },
     avatar: {
       type: String,
       trim: true,

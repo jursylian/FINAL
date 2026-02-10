@@ -141,11 +141,7 @@ export default function Feed() {
         </div>
 
         <div className="mt-24 flex flex-col items-center gap-3">
-          <img
-            src="/images/Done.svg"
-            alt="Done"
-            className="h-13 w-13 cursor-pointer"
-          />
+          <img src="/images/Done.svg" alt="Done" className="h-25 w-25" />
           <div className="text-center">
             <div className="text-[14px] font-semibold text-[#262626]">
               You've seen all the updates

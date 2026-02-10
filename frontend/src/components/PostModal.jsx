@@ -7,6 +7,7 @@ import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
 import { ModalStackRoot, ModalWindow } from "./ModalShell.jsx";
 import UserAvatar from "./UserAvatar.jsx";
+import UserLink from "./UserLink.jsx";
 import useIsDesktop from "../lib/useIsDesktop.js";
 
 export default function PostModal({
@@ -32,16 +33,11 @@ export default function PostModal({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState(null);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const commentInputRef = useRef(null);
   const likesCount =
-    post?.likesCount ??
-    post?.likes?.length ??
-    stats.likes ??
-    0;
+    post?.likesCount ?? post?.likes?.length ?? stats.likes ?? 0;
   const commentsCount =
-    post?.commentsCount ??
-    commentsTotal ??
-    comments.length ??
-    0;
+    post?.commentsCount ?? commentsTotal ?? comments.length ?? 0;
   const ownerId =
     post?.authorId?._id ||
     post?.authorId ||
@@ -141,7 +137,15 @@ export default function PostModal({
         body: JSON.stringify({ text }),
       });
       if (data.comment) {
-        setComments((prev) => [data.comment, ...prev]);
+        const nextComment = {
+          ...data.comment,
+          likesCount:
+            typeof data.comment.likesCount === "number"
+              ? data.comment.likesCount
+              : 0,
+          likedByMe: Boolean(data.comment.likedByMe),
+        };
+        setComments((prev) => [nextComment, ...prev]);
         setCommentsTotal((prev) => prev + 1);
         setCommentText("");
         if (typeof window !== "undefined") {
@@ -166,6 +170,15 @@ export default function PostModal({
     }
   }
 
+  function handleReply(username) {
+    if (!username) return;
+    const mention = `@${username} `;
+    setCommentText((prev) => (prev.startsWith(mention) ? prev : mention));
+    requestAnimationFrame(() => {
+      commentInputRef.current?.focus();
+    });
+  }
+
   async function handleDelete() {
     if (deleteLoading) return;
     setDeleteLoading(true);
@@ -188,6 +201,67 @@ export default function PostModal({
       return;
     }
     onClose?.();
+  }
+
+  function getCommentMeta(comment) {
+    const likesCount =
+      typeof comment.likesCount === "number"
+        ? comment.likesCount
+        : Array.isArray(comment.likes)
+          ? comment.likes.length
+          : 0;
+    const likedByMe =
+      typeof comment.likedByMe === "boolean"
+        ? comment.likedByMe
+        : Array.isArray(comment.likes) && user?._id
+          ? comment.likes.some((id) => String(id) === String(user._id))
+          : false;
+    return { likesCount, likedByMe };
+  }
+
+  async function handleToggleCommentLike(commentId) {
+    if (!commentId) return;
+    const snapshot = comments;
+    setComments((prev) =>
+      prev.map((comment) => {
+        if (comment._id !== commentId) return comment;
+        const { likesCount, likedByMe } = getCommentMeta(comment);
+        return {
+          ...comment,
+          likesCount: Math.max(0, likesCount + (likedByMe ? -1 : 1)),
+          likedByMe: !likedByMe,
+        };
+      }),
+    );
+
+    try {
+      const data = await request(`/comments/${commentId}/like`, {
+        method: "POST",
+      });
+      if (data?.comment) {
+        setComments((prev) =>
+          prev.map((comment) =>
+            comment._id === commentId
+              ? {
+                  ...comment,
+                  ...data.comment,
+                  likesCount:
+                    typeof data.comment.likesCount === "number"
+                      ? data.comment.likesCount
+                      : comment.likesCount,
+                  likedByMe:
+                    typeof data.comment.likedByMe === "boolean"
+                      ? data.comment.likedByMe
+                      : comment.likedByMe,
+                }
+              : comment,
+          ),
+        );
+      }
+    } catch (err) {
+      setComments(snapshot);
+      setError(err.message || "Unable to like the comment.");
+    }
   }
 
   const commentsRef = useRef(null);
@@ -232,15 +306,14 @@ export default function PostModal({
               >
                 <img src="/images/Back.svg" alt="Back" className="h-5 w-5" />
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (ownerId) navigate(`/profile/${ownerId}`);
-                }}
+              <UserLink
+                userId={ownerId}
                 className="text-[14px] font-semibold"
+                ariaLabel="Open profile"
+                stopPropagation={false}
               >
                 {post?.authorId?.username || "Post"}
-              </button>
+              </UserLink>
               <button
                 type="button"
                 onClick={() => setActionsOpen(true)}
@@ -344,18 +417,17 @@ export default function PostModal({
 
               <div className="flex w-full md:w-[424px] flex-col border-l border-[#DBDBDB] min-h-0 shrink-0">
                 <div className="flex items-center gap-3 border-b border-[#DBDBDB] px-5 py-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (ownerId) navigate(`/profile/${ownerId}`);
-                    }}
+                  <UserLink
+                    userId={ownerId}
                     className="flex items-center gap-3"
+                    ariaLabel="Open profile"
+                    stopPropagation={false}
                   >
                     <UserAvatar user={post?.authorId} size={36} />
                     <div className="text-sm font-semibold">
                       {post?.authorId?.username || "user"}
                     </div>
-                  </button>
+                  </UserLink>
                   {isOwner ? (
                     <button
                       type="button"
@@ -374,11 +446,23 @@ export default function PostModal({
                 >
                   {post?.caption ? (
                     <div className="flex gap-3">
-                      <UserAvatar user={post?.authorId} size={36} />
+                      <UserLink
+                        userId={ownerId}
+                        className="h-9 w-9"
+                        ariaLabel="Open profile"
+                        stopPropagation={false}
+                      >
+                        <UserAvatar user={post?.authorId} size={36} />
+                      </UserLink>
                       <div className="text-sm text-[#262626]">
-                        <span className="font-semibold">
+                        <UserLink
+                          userId={ownerId}
+                          className="font-semibold"
+                          ariaLabel="Open profile"
+                          stopPropagation={false}
+                        >
                           {post?.authorId?.username || "user"}
-                        </span>{" "}
+                        </UserLink>{" "}
                         {post.caption}
                       </div>
                     </div>
@@ -388,21 +472,73 @@ export default function PostModal({
                     <div className="text-xs text-red-500">{commentError}</div>
                   ) : null}
 
-                  {comments.map((comment) => (
-                    <div
-                      key={comment._id}
-                      data-comment-id={comment._id}
-                      className="flex gap-3"
-                    >
-                      <UserAvatar user={comment.userId} size={36} />
-                      <div className="text-sm text-[#262626]">
-                        <span className="font-semibold">
-                          {comment.userId?.username || "user"}
-                        </span>{" "}
-                        {comment.text}
+                  {comments.map((comment) => {
+                    const { likesCount, likedByMe } = getCommentMeta(comment);
+                    return (
+                      <div
+                        key={comment._id}
+                        data-comment-id={comment._id}
+                        className="flex items-start gap-3"
+                      >
+                        <UserLink
+                          userId={comment.userId?._id || comment.userId}
+                          className="h-9 w-9"
+                          ariaLabel="Open profile"
+                          stopPropagation={false}
+                        >
+                          <UserAvatar user={comment.userId} size={36} />
+                        </UserLink>
+                        <div className="flex-1">
+                          <div className="text-sm text-[#262626]">
+                            <UserLink
+                              userId={comment.userId?._id || comment.userId}
+                              className="font-semibold"
+                              ariaLabel="Open profile"
+                              stopPropagation={false}
+                            >
+                              {comment.userId?.username || "user"}
+                            </UserLink>{" "}
+                            {comment.text}
+                          </div>
+                          <div className="mt-1 flex items-center gap-3 text-[11px] text-[#8E8E8E]">
+                            {likesCount > 0 ? (
+                              <span>
+                                {likesCount === 1
+                                  ? "1 like"
+                                  : `${likesCount} likes`}
+                              </span>
+                            ) : null}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleReply(comment.userId?.username || "")
+                              }
+                              className="text-[#8E8E8E]"
+                              aria-label="Reply to comment"
+                            >
+                              Reply
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleCommentLike(comment._id)}
+                          className="inline-flex items-center justify-center"
+                          aria-label="Like comment"
+                        >
+                          <img
+                            src={
+                              likedByMe
+                                ? "/images/Like_active-red.svg"
+                                : "/images/Like.svg"
+                            }
+                            alt="Like"
+                            className="h-[10px] w-[10px]"
+                          />
+                        </button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {commentsTotal > comments.length ? (
                     <div className="text-xs text-[#8E8E8E]">
                       Showing {comments.length} of {commentsTotal}
@@ -465,6 +601,7 @@ export default function PostModal({
                     <img src="/images/Smile.svg" alt="Emoji" />
                     <div className="flex h-10 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-4 text-sm text-[#262626] pointer-events-auto">
                       <input
+                        ref={commentInputRef}
                         value={commentText}
                         onChange={(event) => setCommentText(event.target.value)}
                         placeholder="Add a comment..."
