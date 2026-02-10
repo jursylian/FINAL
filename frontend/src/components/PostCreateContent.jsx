@@ -342,7 +342,7 @@ export default function PostCreateContent({
           </div>
 
           {!isEditing ? (
-            <div className="px-4 py-3 border-b border-[#DBDBDB]">
+            <div className="px-4 py-3">
               <textarea
                 value={firstCommentText}
                 onChange={(event) => setFirstCommentText(event.target.value)}
