@@ -47,14 +47,14 @@ export default function NotFound() {
           </div>
         </aside>
 
-        <main className="flex flex-1 items-start justify-center px-5 md:px-6 md:pt-[94px]">
+        <main className="flex flex-1 items-start justify-center px-5 md:px-6 md:pt-[72px] xl:pt-[94px]">
           <div className="flex flex-col items-start gap-10 md:flex-row md:items-start md:gap-12">
             <img
               src="/images/Hero.png"
               alt="Preview"
-              className="h-[360px] w-[236px] md:h-[460px] md:w-[301px] object-contain"
+              className="h-[360px] w-[236px] md:h-[400px] md:w-[260px] xl:h-[460px] xl:w-[301px] object-contain"
             />
-            <div className="mt-[47px] max-w-[625px] text-center md:text-left">
+            <div className="mt-[47px] max-w-[625px] text-center md:mt-[32px] md:text-left xl:mt-[47px]">
               <h1
                 className="max-w-[625px] whitespace-nowrap text-[36px] font-bold leading-[20px] tracking-[0px] text-[#262626]"
                 style={{ fontFamily: "Roboto, sans-serif" }}

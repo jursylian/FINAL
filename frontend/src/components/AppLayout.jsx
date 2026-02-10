@@ -704,6 +704,10 @@ function MobileTopBar({
   createActive = false,
 }) {
   const badgeText = notifCount > 99 ? "99+" : String(notifCount);
+  const badgeIsPill = badgeText.length > 1;
+  const badgeClass = badgeIsPill
+    ? "min-w-[18px] h-[16px] px-1 text-[9px]"
+    : "h-[16px] w-[16px] text-[10px]";
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-[56px] border-b border-[#DBDBDB] bg-white sm:hidden">
@@ -733,7 +737,13 @@ function MobileTopBar({
             className="h-6 w-6"
           />
           {notifCount > 0 ? (
-            <span className="absolute -right-1 -top-1 flex min-w-[16px] items-center justify-center rounded-full bg-[#0095F6] px-1 text-[9px] font-semibold text-white">
+            <span
+              className={[
+                "absolute -right-1 -top-1 flex items-center justify-center rounded-full",
+                "bg-[#EF4444] font-semibold text-white leading-none",
+                badgeClass,
+              ].join(" ")}
+            >
               {badgeText}
             </span>
           ) : null}

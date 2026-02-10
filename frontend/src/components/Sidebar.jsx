@@ -19,6 +19,10 @@ export default function Sidebar({
   const rowClass = "flex items-center gap-3";
   const labelClass = "text-[14px] text-[#262626]";
   const badgeText = notifCount > 99 ? "99+" : String(notifCount);
+  const badgeIsPill = badgeText.length > 1;
+  const badgeClass = badgeIsPill
+    ? "min-w-[18px] h-[18px] px-1 text-[10px]"
+    : "h-[18px] w-[18px] text-[11px]";
 
   return (
     <aside className="sticky top-0 z-50 h-screen md:h-[calc(100vh-158px)] w-[245px] border-r border-[#DBDBDB] bg-white overflow-hidden">
@@ -70,7 +74,11 @@ export default function Sidebar({
               />
               {notifCount > 0 ? (
                 <span
-                  className="absolute -right-2 -top-2 flex min-w-[18px] items-center justify-center rounded-full bg-[#0095F6] px-1 text-[10px] font-semibold text-white"
+                  className={[
+                    "absolute -right-2 -top-2 flex items-center justify-center rounded-full",
+                    "bg-[#EF4444] font-semibold text-white leading-none",
+                    badgeClass,
+                  ].join(" ")}
                 >
                   {badgeText}
                 </span>
