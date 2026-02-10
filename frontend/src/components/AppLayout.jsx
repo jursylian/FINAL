@@ -728,25 +728,27 @@ function MobileTopBar({
         </MobileIconButton>
         <div className="text-[14px] font-semibold text-[#262626]">ICHgram</div>
         <MobileIconButton onClick={onNotifications} label="Notifications">
-          <img
-            src={
-              notificationsActive
-                ? "/images/Like_active.svg"
-                : "/images/Like.svg"
-            }
-            className="h-6 w-6"
-          />
-          {notifCount > 0 ? (
-            <span
-              className={[
-                "absolute -right-1 -top-1 flex items-center justify-center rounded-full",
-                "bg-[#EF4444] font-semibold text-white leading-none",
-                badgeClass,
-              ].join(" ")}
-            >
-              {badgeText}
-            </span>
-          ) : null}
+          <span className="relative inline-flex h-6 w-6 items-center justify-center">
+            <img
+              src={
+                notificationsActive
+                  ? "/images/Like_active.svg"
+                  : "/images/Like.svg"
+              }
+              className="h-6 w-6"
+            />
+            {notifCount > 0 ? (
+              <span
+                className={[
+                  "absolute -right-2 -top-2 flex items-center justify-center rounded-full",
+                  "bg-[#EF4444] font-semibold text-white leading-none",
+                  badgeClass,
+                ].join(" ")}
+              >
+                {badgeText}
+              </span>
+            ) : null}
+          </span>
         </MobileIconButton>
       </div>
     </div>

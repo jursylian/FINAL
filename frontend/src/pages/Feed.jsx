@@ -11,6 +11,7 @@ import { toggleLike } from "../lib/useLikeToggle.js";
 export default function Feed() {
   const isDesktop = useIsDesktop();
   const { token } = useAuth();
+  const FEED_LIMIT = 6;
   const [items, setItems] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,8 +33,8 @@ export default function Feed() {
         return;
       }
       try {
-        const data = await request(`/posts?limit=${DEFAULT_LIMIT}`);
-        if (mounted) setItems(data.items || []);
+        const data = await request(`/posts?limit=${FEED_LIMIT}`);
+        if (mounted) setItems((data.items || []).slice(0, FEED_LIMIT));
       } catch (err) {
         if (mounted) setError(err.message || "Failed to load feed.");
       } finally {
@@ -53,7 +54,7 @@ export default function Feed() {
       if (!created?._id) return;
       setItems((prev) => {
         if (prev.some((post) => post._id === created._id)) return prev;
-        return [created, ...prev];
+        return [created, ...prev].slice(0, FEED_LIMIT);
       });
     }
     window.addEventListener("post:created", handleCreated);

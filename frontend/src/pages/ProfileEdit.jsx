@@ -144,16 +144,19 @@ export default function ProfileEdit() {
   const bioLength = (watchedBio || "").length;
 
   return (
-    <div className="px-4 py-8">
-      <div className="mx-auto max-w-[630px]">
-        <h1 className="text-[20px] font-semibold text-[#262626] mb-8">
+    <div className="px-4 py-8 md:py-6 lg:py-7 xl:py-8">
+      <div className="mx-auto max-w-[630px] md:-translate-x-[120px] md:transform">
+        <h1 className="mb-8 text-[20px] font-semibold text-[#262626] md:mb-6 md:text-[18px] xl:mb-8 xl:text-[20px]">
           Edit profile
         </h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-4 md:gap-3 xl:gap-4"
+        >
           {/* ===== Avatar section ===== */}
-          <div className="flex items-center gap-4 rounded-2xl bg-[#EFEFEF] p-4">
-            <div className="h-[56px] w-[56px] shrink-0 overflow-hidden rounded-full bg-[#DBDBDB]">
+          <div className="flex items-center gap-4 rounded-2xl bg-[#EFEFEF] p-4 md:p-3 xl:p-4">
+            <div className="h-[56px] w-[56px] shrink-0 overflow-hidden rounded-full bg-[#DBDBDB] md:h-[48px] md:w-[48px] xl:h-[56px] xl:w-[56px]">
               <img
                 src={avatarSrc}
                 alt={watchedUsername || "profile"}
@@ -161,11 +164,11 @@ export default function ProfileEdit() {
               />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[16px] font-semibold text-[#262626] truncate">
+              <div className="text-[16px] font-semibold text-[#262626] truncate md:text-[15px] xl:text-[16px]">
                 {watchedUsername || "profile"}
               </div>
               {watchedBio && (
-                <div className="text-[14px] text-[#737373] truncate">
+                <div className="text-[14px] text-[#737373] truncate md:text-[13px] xl:text-[14px]">
                   {watchedBio}
                 </div>
               )}
@@ -180,7 +183,7 @@ export default function ProfileEdit() {
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="shrink-0 rounded-lg bg-[#0095F6] px-4 py-1.5 text-[14px] font-semibold text-white hover:bg-[#1877F2] transition"
+              className="shrink-0 rounded-lg bg-[#0095F6] px-4 py-1.5 text-[14px] font-semibold text-white hover:bg-[#1877F2] transition md:py-1 xl:py-1.5"
             >
               New photo
             </button>
@@ -213,17 +216,19 @@ export default function ProfileEdit() {
           />
 
           {/* ===== About ===== */}
-          <FormField
-            label="About"
-            as="textarea"
-            rows={3}
-            maxLength={150}
-            error={errors.bio?.message}
-            {...register("bio", {
-              maxLength: { value: 150, message: "Max 150 characters." },
-            })}
-          />
-          <div className="-mt-2 text-right text-[12px] text-[#C7C7C7]">
+          <div className="md:[&>div>textarea]:h-[96px] xl:[&>div>textarea]:h-[140px]">
+            <FormField
+              label="About"
+              as="textarea"
+              rows={3}
+              maxLength={150}
+              error={errors.bio?.message}
+              {...register("bio", {
+                maxLength: { value: 150, message: "Max 150 characters." },
+              })}
+            />
+          </div>
+          <div className="-mt-2 text-right text-[12px] text-[#C7C7C7] md:-mt-3 xl:-mt-2">
             {bioLength} / 150
           </div>
 
@@ -238,7 +243,7 @@ export default function ProfileEdit() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-2 w-[268px] rounded-xl bg-[#0095F6] py-2.5 text-[14px] font-semibold text-white transition hover:bg-[#1877F2] disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-2 w-full rounded-xl bg-[#0095F6] py-2.5 text-[14px] font-semibold text-white transition hover:bg-[#1877F2] disabled:cursor-not-allowed disabled:opacity-60 md:mt-1 md:w-[268px] md:py-2 xl:mt-2 xl:py-2.5"
           >
             {isSubmitting ? "Saving..." : "Submit"}
           </button>
