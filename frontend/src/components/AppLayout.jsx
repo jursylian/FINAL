@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import Sidebar from "./Sidebar.jsx";
@@ -89,27 +89,32 @@ export default function AppLayout() {
     }
   }, [isDesktop, location.pathname, navigate]);
 
-  useEffect(() => {
+  const loadUnreadCount = useCallback(async () => {
     if (!user?._id) {
       setUnreadCount(0);
       return;
     }
-    let mounted = true;
-    async function loadCount() {
-      try {
-        const data = await request("/notifications/unread-count");
-        if (mounted) {
-          setUnreadCount(typeof data.count === "number" ? data.count : 0);
-        }
-      } catch (err) {
-        if (mounted) setUnreadCount(0);
-      }
+    try {
+      const data = await request("/notifications/unread-count");
+      setUnreadCount(typeof data.count === "number" ? data.count : 0);
+    } catch (err) {
+      setUnreadCount(0);
     }
-    loadCount();
-    return () => {
-      mounted = false;
-    };
   }, [user?._id]);
+
+  useEffect(() => {
+    loadUnreadCount();
+  }, [loadUnreadCount]);
+
+  useEffect(() => {
+    function handleChanged() {
+      loadUnreadCount();
+    }
+    window.addEventListener("notifications:changed", handleChanged);
+    return () => {
+      window.removeEventListener("notifications:changed", handleChanged);
+    };
+  }, [loadUnreadCount]);
 
   useEffect(() => {
     function handleDelta(event) {
@@ -212,6 +217,9 @@ export default function AppLayout() {
         setComments((prev) => [data.comment, ...prev]);
         setCommentsTotal((prev) => prev + 1);
         setCommentText("");
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("notifications:changed"));
+        }
       }
     } catch (err) {
       setCommentError(err.message || "Unable to add a comment.");

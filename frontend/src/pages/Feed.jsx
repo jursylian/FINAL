@@ -104,6 +104,9 @@ export default function Feed() {
             : post,
         ),
       );
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("notifications:changed"));
+      }
     } catch (err) {
       setError(err.message || "Failed to like the post.");
     } finally {

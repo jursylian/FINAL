@@ -84,6 +84,9 @@ export default function PostDetail() {
           typeof data.likesCount === "number" ? data.likesCount : prev.likes,
         liked: Boolean(data.liked),
       }));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("notifications:changed"));
+      }
     } catch (err) {
       setError(err.message || "Unable to like the post.");
     } finally {
@@ -109,6 +112,9 @@ export default function PostDetail() {
         setComments((prev) => [data.comment, ...prev]);
         setCommentsTotal((prev) => prev + 1);
         setCommentText("");
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("notifications:changed"));
+        }
       }
     } catch (err) {
       setCommentError(err.message || "Unable to add a comment.");
