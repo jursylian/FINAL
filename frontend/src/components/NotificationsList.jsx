@@ -8,6 +8,7 @@ function buildText(item) {
   if (item.type === "like") return "liked your post";
   if (item.type === "comment") return "commented on your post";
   if (item.type === "follow") return "started following you";
+  if (item.type === "like_comment") return "liked your comment";
   return "did something";
 }
 
@@ -82,6 +83,15 @@ export default function NotificationsList() {
     );
   }
 
+  function openPost(postId, commentId) {
+    if (!postId) return;
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("post:open", { detail: { postId, commentId } }),
+      );
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {items.map((notification) => (
@@ -106,31 +116,32 @@ export default function NotificationsList() {
               >
                 {notification.actorId?.username || "user"}
               </UserLink>{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  if (notification.type === "follow") {
+              {notification.type === "follow" ? (
+                <button
+                  type="button"
+                  onClick={() => {
                     const actorId = notification.actorId?._id;
                     if (actorId) {
                       navigate(`/profile/${actorId}`);
                     }
-                    return;
-                  }
-                  const ownerId = notification.userId;
-                  const postId = notification.postId || notification.entityId;
-                  if (!ownerId || !postId) return;
-                  const commentId =
-                    notification.commentId ||
-                    (notification.type === "comment" ? notification.entityId : "");
-                  const search = new URLSearchParams();
-                  search.set("post", postId);
-                  if (commentId) search.set("comment", commentId);
-                  navigate(`/profile/${ownerId}?${search.toString()}`);
-                }}
-                className="text-left cursor-pointer transition hover:opacity-70"
-              >
-                {buildText(notification)}
-              </button>
+                  }}
+                  className="text-left cursor-pointer transition hover:opacity-70"
+                >
+                  {buildText(notification)}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const postId = notification.postId || notification.entityId;
+                    const commentId = notification.commentId || null;
+                    openPost(postId, commentId);
+                  }}
+                  className="text-left cursor-pointer transition hover:opacity-70"
+                >
+                  {buildText(notification)}
+                </button>
+              )}
             </div>
           </div>
           <button

@@ -103,6 +103,32 @@ export async function toggleCommentLike(req, res) {
     }
 
     await comment.save();
+    const isOwnComment =
+      String(comment.userId?._id || comment.userId) === String(userId);
+    if (!alreadyLiked && !isOwnComment) {
+      const exists = await Notification.exists({
+        userId: comment.userId,
+        actorId: userId,
+        type: "like_comment",
+        entityId: comment._id,
+      });
+      if (!exists) {
+        await Notification.create({
+          userId: comment.userId,
+          actorId: userId,
+          type: "like_comment",
+          entityId: comment._id,
+        });
+      }
+    }
+    if (alreadyLiked) {
+      await Notification.findOneAndDelete({
+        userId: comment.userId,
+        actorId: userId,
+        type: "like_comment",
+        entityId: comment._id,
+      });
+    }
     const obj = comment.toObject();
 
     return res.status(200).json({

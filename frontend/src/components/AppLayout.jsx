@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import Sidebar from "./Sidebar.jsx";
 import NotificationsList from "./NotificationsList.jsx";
+import PostModal from "./PostModal.jsx";
 import PostCreateModal from "./PostCreateModal.jsx";
 import useIsDesktop from "../lib/useIsDesktop.js";
 import SearchPanel from "./SearchPanel.jsx";
@@ -28,6 +29,8 @@ export default function AppLayout() {
   const [commentError, setCommentError] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [commentSending, setCommentSending] = useState(false);
+  const [notifPostId, setNotifPostId] = useState(null);
+  const [notifCommentId, setNotifCommentId] = useState(null);
   const commentInputRef = React.useRef(null);
   const isHome = location.pathname === "/";
   const isProfile = location.pathname.startsWith("/profile");
@@ -141,6 +144,26 @@ export default function AppLayout() {
     return () => {
       window.removeEventListener("mobile-viewer:open", handleOpen);
       window.removeEventListener("mobile-viewer:close", handleClose);
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleOpen(event) {
+      const detail = event?.detail || {};
+      const postId = detail.postId;
+      if (!postId) return;
+      setNotifPostId(postId);
+      setNotifCommentId(detail.commentId || null);
+    }
+    function handleClose() {
+      setNotifPostId(null);
+      setNotifCommentId(null);
+    }
+    window.addEventListener("post:open", handleOpen);
+    window.addEventListener("post:close", handleClose);
+    return () => {
+      window.removeEventListener("post:open", handleOpen);
+      window.removeEventListener("post:close", handleClose);
     };
   }, []);
 
@@ -545,6 +568,19 @@ export default function AppLayout() {
 
       {createOpen && isDesktop ? (
         <PostCreateModal onClose={() => setCreateOpen(false)} />
+      ) : null}
+
+      {notifPostId ? (
+        <PostModal
+          postId={notifPostId}
+          focusCommentId={notifCommentId}
+          allowMobile
+          onClose={() => {
+            setNotifPostId(null);
+            setNotifCommentId(null);
+            window.dispatchEvent(new Event("post:close"));
+          }}
+        />
       ) : null}
     </div>
   );

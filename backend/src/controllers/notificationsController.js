@@ -23,7 +23,11 @@ export async function listNotifications(req, res) {
       .lean();
 
     const commentIds = items
-      .filter((item) => item.type === "comment" && item.entityId)
+      .filter(
+        (item) =>
+          (item.type === "comment" || item.type === "like_comment") &&
+          item.entityId,
+      )
       .map((item) => item.entityId);
 
     if (commentIds.length) {
@@ -34,7 +38,7 @@ export async function listNotifications(req, res) {
         comments.map((comment) => [String(comment._id), comment.postId]),
       );
       items = items.map((item) => {
-        if (item.type === "comment") {
+        if (item.type === "comment" || item.type === "like_comment") {
           return {
             ...item,
             postId: commentMap.get(String(item.entityId)),
