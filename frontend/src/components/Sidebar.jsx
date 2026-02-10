@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Sidebar({
   user,
@@ -15,9 +15,12 @@ export default function Sidebar({
   onNavigate,
   exploreActive,
 }) {
-  const iconClass = "h-6 w-6 shrink-0 cursor-pointer";
-  const rowClass = "flex items-center gap-3";
-  const labelClass = "text-[14px] text-[#262626]";
+  const location = useLocation();
+  const profileActive = location.pathname.startsWith("/profile");
+  const iconClass = "h-6 w-6 shrink-0";
+  const rowClass =
+    "flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-[#F2F2F2] cursor-pointer";
+  const labelClass = "text-[14px] text-[#262626] transition";
   const badgeText = notifCount > 99 ? "99+" : String(notifCount);
   const badgeIsPill = badgeText.length > 1;
   const badgeClass = badgeIsPill
@@ -57,11 +60,18 @@ export default function Sidebar({
           </button>
 
           <Link to="/explore" className={rowClass} onClick={onNavigate}>
-            <img src={exploreActive ? "/images/Explore_active.svg" : "/images/Explore.svg"} className={iconClass} />
+            <img
+              src={
+                exploreActive
+                  ? "/images/Explore_active.svg"
+                  : "/images/Explore.svg"
+              }
+              className={iconClass}
+            />
             <span className={labelClass}>Explore</span>
           </Link>
 
-          <div className={rowClass}>
+          <div className={rowClass} role="button" tabIndex={0}>
             <img src="/images/Messages.svg" className={iconClass} />
             <span className={labelClass}>Messages</span>
           </div>
@@ -95,7 +105,7 @@ export default function Sidebar({
           {user?._id && (
             <Link
               to={`/profile/${user._id}`}
-              className={`${rowClass} mt-6 md:mt-12`}
+              className={rowClass}
               onClick={onNavigate}
             >
               <div className="h-6 w-6 overflow-hidden rounded-full bg-[#DBDBDB]">
@@ -103,21 +113,33 @@ export default function Sidebar({
                   <img
                     src={user.avatar}
                     alt={user.username || "Profile"}
-                    className="h-full w-full object-cover cursor-pointer"
+                    className="h-full w-full object-cover"
                   />
                 ) : (
                   <img
                     src="/images/ICH.svg"
                     alt="Profile"
-                    className="h-full w-full object-cover cursor-pointer"
+                    className="h-full w-full object-cover"
                   />
                 )}
               </div>
-              <span className={labelClass}>Profile</span>
+              <span
+                className={[
+                  labelClass,
+                  profileActive ? "font-semibold text-[#1f1f1f]" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                Profile
+              </span>
             </Link>
           )}
 
-          <button onClick={onLogout} className={rowClass}>
+          <button
+            onClick={onLogout}
+            className={[rowClass, "hover:bg-transparent", "hover:[&>span]:text-[#1f1f1f]"].join(" ")}
+          >
             <img src="/images/Logout.svg" className={iconClass} />
             <span className={labelClass}>Log out</span>
           </button>

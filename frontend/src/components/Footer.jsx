@@ -24,12 +24,18 @@ export default function Footer({ items = DEFAULT_ITEMS, className = "" }) {
                 key={item.label}
                 type="button"
                 onClick={item.onClick}
-                className="text-[#737373] hover:text-[#262626] transition"
+                className="cursor-pointer text-[#737373] hover:text-[#262626] transition"
               >
                 {item.label}
               </button>
             ) : (
-              <span key={item.label}>{item.label}</span>
+              <button
+                key={item.label}
+                type="button"
+                className="cursor-pointer text-[#737373] hover:text-[#262626] transition"
+              >
+                {item.label}
+              </button>
             ),
           )}
         </div>
