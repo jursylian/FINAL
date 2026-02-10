@@ -10,18 +10,50 @@ export async function searchUsers(req, res) {
     const q = String(req.query.q || "").trim();
     const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 20));
 
-    let query = {};
-    if (q) {
-      const regex = new RegExp(escapeRegex(q), "i");
-      query = { $or: [{ username: regex }, { name: regex }] };
+    if (!q) {
+      const items = await User.find()
+        .select("-password")
+        .sort({ createdAt: -1 })
+        .limit(limit);
+      return res.status(200).json({ items });
     }
 
-    const items = await User.find(query)
-      .select("-password")
-      .sort({ createdAt: -1 })
-      .limit(limit);
+    const escaped = escapeRegex(q);
+    const startsWithRegex = new RegExp(`^${escaped}`, "i");
+    const containsRegex = new RegExp(escaped, "i");
 
-    return res.status(200).json({ items });
+    const [startsWith, contains] = await Promise.all([
+      User.find({
+        $or: [
+          { username: startsWithRegex },
+          { name: startsWithRegex },
+          { email: startsWithRegex },
+        ],
+      })
+        .select("-password")
+        .limit(limit),
+      User.find({
+        $or: [
+          { username: containsRegex },
+          { name: containsRegex },
+          { email: containsRegex },
+        ],
+      })
+        .select("-password")
+        .limit(limit),
+    ]);
+
+    const seen = new Set();
+    const items = [];
+    for (const user of [...startsWith, ...contains]) {
+      const id = user._id.toString();
+      if (!seen.has(id)) {
+        seen.add(id);
+        items.push(user);
+      }
+    }
+
+    return res.status(200).json({ items: items.slice(0, limit) });
   } catch (err) {
     return handleError(err, res);
   }
