@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
+import UserAvatar from "./UserAvatar.jsx";
 
 export default function UserList({ endpoint, title, emptyText }) {
   const { id } = useParams();
@@ -59,16 +60,7 @@ export default function UserList({ endpoint, title, emptyText }) {
               to={`/profile/${user._id}`}
               className="flex items-center gap-4 rounded-lg border border-[#EFEFEF] bg-white p-4"
             >
-              <div className="h-12 w-12 overflow-hidden rounded-full bg-[#DBDBDB]">
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.username}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                ) : null}
-              </div>
+              <UserAvatar user={user} size={48} />
               <div>
                 <div className="text-[14px] font-semibold text-[#262626]">
                   {user.name || user.username}

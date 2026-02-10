@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
 import UserLink from "./UserLink.jsx";
+import UserAvatar from "./UserAvatar.jsx";
 
 function buildText(item) {
   if (item.type === "like") return "liked your post";
@@ -98,14 +99,9 @@ export default function NotificationsList() {
         <div key={notification._id} className="flex items-center gap-3">
           <UserLink
             userId={notification.actorId?._id || notification.actorId}
-            className="h-8 w-8 overflow-hidden rounded-full bg-[#DBDBDB]"
             ariaLabel="Open profile"
           >
-            <img
-              src={notification.actorId?.avatar || "/images/ICH.svg"}
-              alt={notification.actorId?.username || "user"}
-              className="h-full w-full object-cover"
-            />
+            <UserAvatar user={notification.actorId} size={32} />
           </UserLink>
           <div className="flex-1">
             <div className="text-[13px] text-[#262626]">

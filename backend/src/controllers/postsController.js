@@ -4,6 +4,7 @@ import { handleError } from "../utils/errorHandler.js";
 import { parsePagination } from "../utils/pagination.js";
 import { toObjectId } from "../utils/objectId.js";
 import { getFollowingIds } from "../utils/followingIds.js";
+import { toDataUrl } from "../utils/toDataUrl.js";
 
 function buildFeedMatch(matchClauses) {
   if (!matchClauses.length) {
@@ -73,9 +74,7 @@ export async function createPost(req, res) {
       return res.status(400).json({ message: "Image file is required" });
     }
 
-    const mimeType = req.file.mimetype || "image/jpeg";
-    const base64 = req.file.buffer.toString("base64");
-    const dataUrl = `data:${mimeType};base64,${base64}`;
+    const dataUrl = toDataUrl(req.file);
 
     const caption = req.body.caption ? String(req.body.caption) : undefined;
 

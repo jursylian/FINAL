@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 
 import { request } from "../lib/apiClient.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import FormField from "../components/FormField.jsx";
 
 export default function ProfileEdit() {
   const { id } = useParams();
@@ -186,68 +187,44 @@ export default function ProfileEdit() {
           </div>
 
           {/* ===== Username ===== */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[16px] font-semibold text-[#262626]">
-              Username
-            </label>
-            <input
-              type="text"
-              {...register("username", {
-                required: "Username is required.",
-                minLength: { value: 3, message: "Min 3 characters." },
-                maxLength: { value: 30, message: "Max 30 characters." },
-              })}
-              className="rounded-xl border border-[#DBDBDB] bg-white px-4 py-2.5 text-[14px] text-[#262626] outline-none transition focus:border-[#A8A8A8]"
-            />
-            {errors.username?.message && (
-              <div className="text-[12px] text-red-500">
-                {errors.username.message}
-              </div>
-            )}
-          </div>
+          <FormField
+            label="Username"
+            type="text"
+            error={errors.username?.message}
+            {...register("username", {
+              required: "Username is required.",
+              minLength: { value: 3, message: "Min 3 characters." },
+              maxLength: { value: 30, message: "Max 30 characters." },
+            })}
+          />
 
           {/* ===== Website ===== */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[16px] font-semibold text-[#262626]">
-              Website
-            </label>
-            <input
-              type="url"
-              placeholder="https://"
-              {...register("website", {
-                pattern: {
-                  value: /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/.*)?$/i,
-                  message: "Enter a valid URL.",
-                },
-              })}
-              className="rounded-xl border border-[#DBDBDB] bg-white px-4 py-2.5 text-[14px] text-[#262626] placeholder:text-[#C7C7C7] outline-none transition focus:border-[#A8A8A8]"
-            />
-            {errors.website?.message && (
-              <div className="text-[12px] text-red-500">
-                {errors.website.message}
-              </div>
-            )}
-          </div>
+          <FormField
+            label="Website"
+            type="url"
+            placeholder="https://"
+            error={errors.website?.message}
+            {...register("website", {
+              pattern: {
+                value: /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/.*)?$/i,
+                message: "Enter a valid URL.",
+              },
+            })}
+          />
 
           {/* ===== About ===== */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[16px] font-semibold text-[#262626]">
-              About
-            </label>
-            <textarea
-              rows={3}
-              maxLength={150}
-              {...register("bio", {
-                maxLength: { value: 150, message: "Max 150 characters." },
-              })}
-              className="resize-none rounded-xl border border-[#DBDBDB] bg-white px-4 py-2.5 text-[14px] text-[#262626] outline-none transition focus:border-[#A8A8A8]"
-            />
-            <div className="text-right text-[12px] text-[#C7C7C7]">
-              {bioLength} / 150
-            </div>
-            {errors.bio?.message && (
-              <div className="text-[12px] text-red-500">{errors.bio.message}</div>
-            )}
+          <FormField
+            label="About"
+            as="textarea"
+            rows={3}
+            maxLength={150}
+            error={errors.bio?.message}
+            {...register("bio", {
+              maxLength: { value: 150, message: "Max 150 characters." },
+            })}
+          />
+          <div className="-mt-2 text-right text-[12px] text-[#C7C7C7]">
+            {bioLength} / 150
           </div>
 
           {/* ===== Error ===== */}

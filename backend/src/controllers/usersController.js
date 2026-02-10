@@ -4,6 +4,7 @@ import Follow from "../models/Follow.js";
 import { toPublicUser } from "../utils/publicUser.js";
 import { handleError } from "../utils/errorHandler.js";
 import { parsePagination } from "../utils/pagination.js";
+import { toDataUrl } from "../utils/toDataUrl.js";
 
 function isOwner(req, userId) {
   return String(req.userId) === String(userId);
@@ -97,9 +98,7 @@ export async function updateAvatar(req, res) {
       return res.status(400).json({ message: "Image file is required" });
     }
 
-    const mimeType = req.file.mimetype || "image/jpeg";
-    const base64 = req.file.buffer.toString("base64");
-    const dataUrl = `data:${mimeType};base64,${base64}`;
+    const dataUrl = toDataUrl(req.file);
 
     const user = await User.findById(id).select("+password");
     if (!user) {

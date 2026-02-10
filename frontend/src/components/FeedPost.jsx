@@ -1,5 +1,6 @@
 import timeAgo from "../lib/timeAgo.js";
 import UserLink from "./UserLink.jsx";
+import UserAvatar from "./UserAvatar.jsx";
 
 export default function FeedPost({
   post,
@@ -18,14 +19,9 @@ export default function FeedPost({
         <div className="flex items-center gap-3">
           <UserLink
             userId={authorId}
-            className="h-8 w-8 overflow-hidden rounded-full bg-[#DBDBDB]"
             ariaLabel="Open profile"
           >
-            <img
-              src={post.authorId?.avatar || "/images/ICH.svg"}
-              alt={post.authorId?.username || "author"}
-              className="h-full w-full object-cover"
-            />
+            <UserAvatar user={post.authorId} size={32} />
           </UserLink>
           <div>
             <UserLink

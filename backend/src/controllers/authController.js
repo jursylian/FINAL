@@ -40,6 +40,10 @@ const register = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    if (typeof password !== "string" || password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters" });
+    }
+
     const normalizedEmail = String(email).toLowerCase().trim();
     const normalizedUsername = String(username).trim();
 
@@ -150,8 +154,8 @@ const forgotPassword = async (req, res) => {
     const frontend = process.env.FRONTEND_URL || "http://localhost:5173";
     const link = `${frontend}/reset-password?token=${rawToken}`;
 
-    // DEV: print link to server console (replace with real email sending later)
-    console.log("RESET_LINK:", link);
+    // TODO: send link via email
+    // console.log("RESET_LINK:", link);
 
     return okResponse();
   } catch (err) {

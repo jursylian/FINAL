@@ -51,12 +51,27 @@ export default function SearchPanel() {
 
   return (
     <div>
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search"
-        className="h-[40px] w-full rounded-[10px] border border-[#DBDBDB] bg-[#FAFAFA] px-3 text-[14px]"
-      />
+      <div className="relative">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search"
+          className="h-[40px] w-full rounded-[10px] border border-[#DBDBDB] bg-[#FAFAFA] px-3 pr-8 text-[14px]"
+        />
+        {q && (
+          <button
+            type="button"
+            onClick={() => setQ("")}
+            className="absolute right-2 top-1/2 -translate-y-1/2"
+            aria-label="Clear search"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+              <circle cx="8" cy="8" r="8" fill="#C7C7C7" />
+              <path d="M5.5 5.5L10.5 10.5M10.5 5.5L5.5 10.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+      </div>
       {loading ? (
         <div className="mt-3 text-[12px] text-[#8E8E8E]">Searching...</div>
       ) : null}

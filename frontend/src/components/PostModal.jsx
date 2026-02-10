@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { MoreHorizontal } from "lucide-react";
 
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
@@ -9,6 +8,7 @@ import { ModalStackRoot, ModalWindow } from "./ModalShell.jsx";
 import UserAvatar from "./UserAvatar.jsx";
 import UserLink from "./UserLink.jsx";
 import useIsDesktop from "../lib/useIsDesktop.js";
+import useLikeToggle from "../lib/useLikeToggle.js";
 
 export default function PostModal({
   postId,
@@ -28,7 +28,6 @@ export default function PostModal({
   const [commentText, setCommentText] = useState("");
   const [commentError, setCommentError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [likeLoading, setLikeLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -102,25 +101,18 @@ export default function PostModal({
     };
   }, [postId, isDesktop]);
 
-  async function handleToggleLike() {
-    if (likeLoading) return;
-    setLikeLoading(true);
-    try {
-      const data = await request(`/posts/${postId}/like`, { method: "POST" });
+  const { toggle: handleToggleLike, loading: likeLoading } = useLikeToggle(postId, {
+    onUpdate: ({ liked, likesCount }) => {
       setStats((prev) => ({
-        likes:
-          typeof data.likesCount === "number" ? data.likesCount : prev.likes,
-        liked: Boolean(data.liked),
+        likes: likesCount ?? prev.likes,
+        liked,
       }));
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("notifications:changed"));
       }
-    } catch (err) {
-      setError(err.message || "Unable to like the post.");
-    } finally {
-      setLikeLoading(false);
-    }
-  }
+    },
+    onError: (msg) => setError(msg),
+  });
 
   async function handleAddComment(event) {
     event.preventDefault();
@@ -435,7 +427,7 @@ export default function PostModal({
                       className="ml-auto flex h-10 w-10 items-center justify-center rounded-full text-[#262626] hover:bg-[#EFEFEF] active:bg-[#DBDBDB]"
                       aria-label="More options"
                     >
-                      <MoreHorizontal className="h-6 w-6" />
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
                     </button>
                   ) : null}
                 </div>

@@ -4,6 +4,8 @@ import { Link, useParams } from "react-router-dom";
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
 import UserLink from "../components/UserLink.jsx";
+import UserAvatar from "../components/UserAvatar.jsx";
+import useLikeToggle from "../lib/useLikeToggle.js";
 
 export default function PostDetail() {
   const { id } = useParams();
@@ -11,7 +13,6 @@ export default function PostDetail() {
   const [stats, setStats] = useState({ likes: 0, liked: false });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [likeLoading, setLikeLoading] = useState(false);
   const [comments, setComments] = useState([]);
   const [commentsTotal, setCommentsTotal] = useState(0);
   const [commentsLoading, setCommentsLoading] = useState(true);
@@ -73,27 +74,18 @@ export default function PostDetail() {
     };
   }, [id]);
 
-  async function handleToggleLike() {
-    if (likeLoading) {
-      return;
-    }
-    setLikeLoading(true);
-    try {
-      const data = await request(`/posts/${id}/like`, { method: "POST" });
+  const { toggle: handleToggleLike, loading: likeLoading } = useLikeToggle(id, {
+    onUpdate: ({ liked, likesCount }) => {
       setStats((prev) => ({
-        likes:
-          typeof data.likesCount === "number" ? data.likesCount : prev.likes,
-        liked: Boolean(data.liked),
+        likes: likesCount ?? prev.likes,
+        liked,
       }));
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("notifications:changed"));
       }
-    } catch (err) {
-      setError(err.message || "Unable to like the post.");
-    } finally {
-      setLikeLoading(false);
-    }
-  }
+    },
+    onError: (msg) => setError(msg),
+  });
 
   async function handleAddComment(event) {
     event.preventDefault();
@@ -229,16 +221,9 @@ export default function PostDetail() {
               <div key={comment._id} className="flex gap-3">
                 <UserLink
                   userId={comment.userId?._id || comment.userId}
-                  className="h-10 w-10 overflow-hidden rounded-full bg-[#DBDBDB]"
                   ariaLabel="Open profile"
                 >
-                  {comment.userId?.avatar ? (
-                    <img
-                      src={comment.userId.avatar}
-                      alt={comment.userId.username}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : null}
+                  <UserAvatar user={comment.userId} size={40} />
                 </UserLink>
                 <div>
                   <UserLink

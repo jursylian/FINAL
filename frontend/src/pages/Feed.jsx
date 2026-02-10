@@ -6,6 +6,7 @@ import PostModal from "../components/PostModal.jsx";
 import PostCreateModal from "../components/PostCreateModal.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import useIsDesktop from "../lib/useIsDesktop.js";
+import { toggleLike } from "../lib/useLikeToggle.js";
 
 export default function Feed() {
   const isDesktop = useIsDesktop();
@@ -83,25 +84,16 @@ export default function Feed() {
   }
 
   async function handleToggleLike(postId) {
-    if (!postId || likeLoadingIds.has(postId)) {
-      return;
-    }
+    if (!postId || likeLoadingIds.has(postId)) return;
     setError(null);
     setLikeLoading(postId, true);
     try {
-      const data = await request(`/posts/${postId}/like`, { method: "POST" });
+      const { liked, likesCount } = await toggleLike(postId);
       setItems((prev) =>
-        prev.map((post) =>
-          post._id === postId
-            ? {
-                ...post,
-                liked: Boolean(data.liked),
-                likesCount:
-                  typeof data.likesCount === "number"
-                    ? data.likesCount
-                    : post.likesCount,
-              }
-            : post,
+        prev.map((p) =>
+          p._id === postId
+            ? { ...p, liked, likesCount: likesCount ?? p.likesCount }
+            : p,
         ),
       );
       if (typeof window !== "undefined") {

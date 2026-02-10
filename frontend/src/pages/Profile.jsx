@@ -275,8 +275,12 @@ export default function Profile() {
                   href={profile.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[14px] font-semibold text-[#00376B] hover:underline"
+                  className="inline-flex items-center gap-1 text-[14px] font-semibold text-[#00376B] hover:underline"
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 rotate-45">
+                    <rect x="8" y="2" width="8" height="20" rx="4" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                  </svg>
                   {profile.website.replace(/^https?:\/\//, "")}
                 </a>
               )}

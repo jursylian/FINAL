@@ -25,7 +25,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
       select: false,
-      minlength: 5,
+      minlength: 8,
     },
     name: {
       type: String,
@@ -43,6 +43,10 @@ const userSchema = new Schema(
       default: "",
     },
     avatar: {
+      type: String,
+      trim: true,
+    },
+    website: {
       type: String,
       trim: true,
     },

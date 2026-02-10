@@ -16,7 +16,7 @@ const optionalAuth = (req, res, next) => {
     req.userId = payload.sub;
     return next();
   } catch (err) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return next();
   }
 };
 

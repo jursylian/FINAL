@@ -15,8 +15,5 @@
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "description": "",
-    "dependencies": {
-        "react-hook-form": "^7.71.1"
-    }
+    "description": ""
 }
