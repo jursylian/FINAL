@@ -1,9 +1,9 @@
-import React from "react";
+﻿import React from "react";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-white text-[#262626]">
-      <div className="flex min-h-[calc(100vh-70px)]">
+    <div className="min-h-screen bg-white text-[#262626] flex flex-col">
+      <div className="flex flex-1">
         <aside className="hidden md:block w-[245px] border-r border-[#EFEFEF] bg-white">
           <div className="flex h-full flex-col px-6 py-6">
             <img
@@ -40,51 +40,58 @@ export default function NotFound() {
             </nav>
 
             <div className="mt-10 flex items-center gap-3 text-[13px] text-[#262626]">
-              <img src="/images/ICH.svg" className="h-6 w-6 rounded-full" />
+              <img src="/images/Profile.svg" className="h-5 w-5 rounded-full" />
               Profile
             </div>
           </div>
         </aside>
 
-        <main className="flex flex-1 items-center justify-center px-10">
-          <div className="flex  items-center gap-10">
+        <main className="flex flex-1 items-start justify-center px-5 md:px-6 md:pt-[94px]">
+          <div className="flex flex-col items-start gap-10 md:flex-row md:items-start md:gap-12">
             <img
               src="/images/Hero.png"
               alt="Preview"
-              className="hidden md:block h-[460px] w-[301px] object-contain"
+              className="h-[360px] w-[236px] md:h-[460px] md:w-[301px] object-contain"
             />
-            <div>
+            <div className="mt-[47px] max-w-[625px] text-center md:text-left">
               <h1
-                className="text-[36px] font-bold leading-[20px] text-[#262626]"
+                className="max-w-[625px] whitespace-nowrap text-[36px] font-bold leading-[20px] tracking-[0px] text-[#262626]"
                 style={{ fontFamily: "Roboto, sans-serif" }}
               >
                 Oops! Page Not Found (404 Error)
               </h1>
-              <p
-                className="mt-2 max-w-[360px] text-[16px] font-semibold leading-[20px] text-[#737373]"
+              <div
+                className="mt-4 max-w-[475px] space-y-0 text-[16px] font-medium leading-[20px] tracking-[0px] text-[#6B6B6B]"
                 style={{ fontFamily: "Roboto, sans-serif" }}
               >
-                We&apos;re sorry, but the page you&apos;re looking for
-                doesn&apos;t seem to exist. If you typed the URL manually,
-                please double-check the spelling. If you clicked on a link, it
-                may be outdated or broken.
-              </p>
+                <p>
+                  We’re sorry, but the page you’re looking for doesn’t seem to
+                  exist.
+                </p>
+                <p>
+                  If you typed the URL manually, please double-check the
+                  spelling.
+                </p>
+                <p>If you clicked on a link, it may be outdated or broken.</p>
+              </div>
             </div>
           </div>
         </main>
       </div>
 
       <footer className="border-t border-[#EFEFEF] bg-white">
-        <div className="flex h-[44px] items-center justify-center gap-8 text-[11px] text-[#737373]">
-          <span>Home</span>
-          <span>Search</span>
-          <span>Explore</span>
-          <span>Messages</span>
-          <span>Notifications</span>
-          <span>Create</span>
-        </div>
-        <div className="pb-3 text-center text-[11px] text-[#737373]">
-          © {new Date().getFullYear()} ICHgram
+        <div className="flex flex-col items-center px-4 md:px-6 pb-6">
+          <div className="flex h-[44px] items-center justify-center gap-8 text-[12px] text-[#737373]">
+            <span>Home</span>
+            <span>Search</span>
+            <span>Explore</span>
+            <span>Messages</span>
+            <span>Notifications</span>
+            <span>Create</span>
+          </div>
+          <div className="mt-[45px] text-center text-[12px] text-[#737373]">
+            В© {new Date().getFullYear()} ICHgram
+          </div>
         </div>
       </footer>
     </div>

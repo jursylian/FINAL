@@ -32,6 +32,16 @@ export default function PostModal({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState(null);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const likesCount =
+    post?.likesCount ??
+    post?.likes?.length ??
+    stats.likes ??
+    0;
+  const commentsCount =
+    post?.commentsCount ??
+    commentsTotal ??
+    comments.length ??
+    0;
   const ownerId =
     post?.authorId?._id ||
     post?.authorId ||
@@ -225,7 +235,9 @@ export default function PostModal({
                 className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#EFEFEF] active:bg-[#DBDBDB]"
                 aria-label="More options"
               >
-                <span className="text-[22px] font-semibold leading-none">...</span>
+                <span className="text-[22px] font-semibold leading-none">
+                  ...
+                </span>
               </button>
             </div>
 
@@ -248,12 +260,12 @@ export default function PostModal({
             </div>
 
             <div className="border-t border-[#DBDBDB] px-4 py-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <button
                   type="button"
                   onClick={handleToggleLike}
                   disabled={likeLoading}
-                  className="disabled:opacity-60"
+                  className="inline-flex items-center gap-1 disabled:opacity-60"
                   aria-label="Like"
                 >
                   <img
@@ -265,16 +277,12 @@ export default function PostModal({
                     alt="Like"
                     className="h-6 w-6"
                   />
+                  {likesCount > 0 ? (
+                    <span className="text-[14px] text-[#262626]">
+                      {likesCount}
+                    </span>
+                  ) : null}
                 </button>
-                {(typeof post?.likesCount === "number"
-                  ? post.likesCount
-                  : stats.likes) > 0 ? (
-                  <span className="text-[14px] text-[#262626]">
-                    {typeof post?.likesCount === "number"
-                      ? post.likesCount
-                      : stats.likes}
-                  </span>
-                ) : null}
                 <button
                   type="button"
                   onClick={() => {
@@ -283,22 +291,21 @@ export default function PostModal({
                     );
                   }}
                   aria-label="Comments"
-                  className="flex items-center gap-2"
+                  className="inline-flex items-center gap-1"
                 >
                   <img
                     src="/images/Comment.svg"
                     alt="Comment"
                     className="h-6 w-6"
                   />
-                  {(commentsTotal || comments.length) > 0 ? (
+                  {commentsCount > 0 ? (
                     <span className="text-[14px] text-[#262626]">
-                      {commentsTotal || comments.length}
+                      {commentsCount}
                     </span>
                   ) : null}
                 </button>
               </div>
             </div>
-
           </div>
         </ModalWindow>
       ) : (
@@ -389,7 +396,7 @@ export default function PostModal({
                       type="button"
                       onClick={handleToggleLike}
                       disabled={likeLoading}
-                      className="disabled:opacity-60"
+                      className="inline-flex items-center gap-1 disabled:opacity-60"
                     >
                       <img
                         src={
@@ -400,18 +407,34 @@ export default function PostModal({
                         alt="Like"
                         className="h-6 w-6 cursor-pointer"
                       />
+                      {likesCount > 0 ? (
+                        <span className="text-[14px] text-[#262626]">
+                          {likesCount}
+                        </span>
+                      ) : null}
                     </button>
-                    <img
-                      src="/images/Comment.svg"
-                      alt="Comment"
-                      className="h-6 w-6 cursor-pointer"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(
+                          new CustomEvent("comments:open", { detail: postId }),
+                        );
+                      }}
+                      className="inline-flex items-center gap-1"
+                      aria-label="Comments"
+                    >
+                      <img
+                        src="/images/Comment.svg"
+                        alt="Comment"
+                        className="h-6 w-6 cursor-pointer"
+                      />
+                      {commentsCount > 0 ? (
+                        <span className="text-[14px] text-[#262626]">
+                          {commentsCount}
+                        </span>
+                      ) : null}
+                    </button>
                   </div>
-                  {stats.likes > 0 ? (
-                    <div className="mt-2 text-xs text-[#8E8E8E]">
-                      <span className="font-semibold">{stats.likes}</span>
-                    </div>
-                  ) : null}
                 </div>
 
                 <form
@@ -516,6 +539,3 @@ export default function PostModal({
     </ModalStackRoot>
   );
 }
-
-
-

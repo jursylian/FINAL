@@ -70,6 +70,10 @@ export default function Feed() {
 
   function handleOpenComments(id) {
     if (!id) return;
+    if (isDesktop) {
+      setModalPostId(id);
+      return;
+    }
     window.dispatchEvent(new CustomEvent("comments:open", { detail: id }));
   }
 

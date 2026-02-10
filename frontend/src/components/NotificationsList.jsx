@@ -42,10 +42,9 @@ export default function NotificationsList() {
     };
   }, []);
 
-  async function deleteNotification(id) {
+  async function handleMarkRead(id) {
     const snapshot = itemsRef.current;
-    const next = snapshot.filter((item) => item._id !== id);
-    setItems(next);
+    setItems((prev) => prev.filter((item) => item._id !== id));
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent("notifications:unreadDelta", { detail: -1 }),
@@ -85,12 +84,12 @@ export default function NotificationsList() {
 
   return (
     <div className="flex flex-col gap-4">
-      {items.map((n) => (
-        <div key={n._id} className="flex items-center gap-3">
+      {items.map((notification) => (
+        <div key={notification._id} className="flex items-center gap-3">
           <div className="h-8 w-8 overflow-hidden rounded-full bg-[#DBDBDB]">
             <img
-              src={n.actorId?.avatar || "/images/ICH.svg"}
-              alt={n.actorId?.username || "user"}
+              src={notification.actorId?.avatar || "/images/ICH.svg"}
+              alt={notification.actorId?.username || "user"}
               className="h-full w-full object-cover"
             />
           </div>
@@ -98,17 +97,19 @@ export default function NotificationsList() {
             <button
               type="button"
               onClick={() => {
-                if (n.type === "follow") {
-                  const actorId = n.actorId?._id;
+                if (notification.type === "follow") {
+                  const actorId = notification.actorId?._id;
                   if (actorId) {
                     navigate(`/profile/${actorId}`);
                   }
                   return;
                 }
-                const ownerId = n.userId;
-                const postId = n.postId || n.entityId;
+                const ownerId = notification.userId;
+                const postId = notification.postId || notification.entityId;
                 if (!ownerId || !postId) return;
-                const commentId = n.commentId || (n.type === "comment" ? n.entityId : "");
+                const commentId =
+                  notification.commentId ||
+                  (notification.type === "comment" ? notification.entityId : "");
                 const search = new URLSearchParams();
                 search.set("post", postId);
                 if (commentId) search.set("comment", commentId);
@@ -116,12 +117,12 @@ export default function NotificationsList() {
               }}
               className="text-left text-[13px] text-[#262626] cursor-pointer transition hover:opacity-70"
             >
-              {buildText(n)}
+              {buildText(notification)}
             </button>
           </div>
           <button
             type="button"
-            onClick={() => deleteNotification(n._id)}
+            onClick={() => handleMarkRead(notification._id)}
             className="text-[11px] text-[#0095F6]"
           >
             Mark read
