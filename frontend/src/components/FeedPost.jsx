@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import timeAgo from "../lib/timeAgo.js";
 
 export default function FeedPost({
@@ -7,24 +8,41 @@ export default function FeedPost({
   onOpenComments,
   onOpenPost,
 }) {
+  const navigate = useNavigate();
   const likeIcon = post.liked ? "/images/Like_active.svg" : "/images/Like.svg";
   const commentIcon = "/images/Comment.svg";
+  const authorId = post.authorId?._id || post.authorId;
+
+  function handleAuthorClick(event) {
+    event.stopPropagation();
+    if (!authorId) return;
+    navigate(`/profile/${authorId}`);
+  }
 
   return (
     <article className="w-full md:w-[402px] md:max-w-[402px] border-b border-[#EFEFEF] pb-10">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 overflow-hidden rounded-full bg-[#DBDBDB]">
+          <button
+            type="button"
+            onClick={handleAuthorClick}
+            className="h-8 w-8 overflow-hidden rounded-full bg-[#DBDBDB]"
+            aria-label="Open profile"
+          >
             <img
               src={post.authorId?.avatar || "/images/ICH.svg"}
               alt={post.authorId?.username || "author"}
               className="h-full w-full object-cover"
             />
-          </div>
+          </button>
           <div>
-            <div className="text-[14px] font-semibold text-[#262626]">
+            <button
+              type="button"
+              onClick={handleAuthorClick}
+              className="text-[14px] font-semibold text-[#262626]"
+            >
               {post.authorId?.username || "unknown"}
-            </div>
+            </button>
             <div className="text-[12px] text-[#8E8E8E]">
               {timeAgo(post.createdAt)}
             </div>

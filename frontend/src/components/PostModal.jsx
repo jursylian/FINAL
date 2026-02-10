@@ -232,9 +232,15 @@ export default function PostModal({
               >
                 <img src="/images/Back.svg" alt="Back" className="h-5 w-5" />
               </button>
-              <div className="text-[14px] font-semibold">
+              <button
+                type="button"
+                onClick={() => {
+                  if (ownerId) navigate(`/profile/${ownerId}`);
+                }}
+                className="text-[14px] font-semibold"
+              >
                 {post?.authorId?.username || "Post"}
-              </div>
+              </button>
               <button
                 type="button"
                 onClick={() => setActionsOpen(true)}
@@ -338,10 +344,18 @@ export default function PostModal({
 
               <div className="flex w-full md:w-[424px] flex-col border-l border-[#DBDBDB] min-h-0 shrink-0">
                 <div className="flex items-center gap-3 border-b border-[#DBDBDB] px-5 py-4">
-                  <UserAvatar user={post?.authorId} size={36} />
-                  <div className="text-sm font-semibold">
-                    {post?.authorId?.username || "user"}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (ownerId) navigate(`/profile/${ownerId}`);
+                    }}
+                    className="flex items-center gap-3"
+                  >
+                    <UserAvatar user={post?.authorId} size={36} />
+                    <div className="text-sm font-semibold">
+                      {post?.authorId?.username || "user"}
+                    </div>
+                  </button>
                   {isOwner ? (
                     <button
                       type="button"
