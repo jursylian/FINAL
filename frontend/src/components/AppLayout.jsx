@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+﻿import React, { useEffect, useState, useCallback } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import Sidebar from "./Sidebar.jsx";
@@ -11,6 +11,7 @@ import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
 import UserAvatar from "./UserAvatar.jsx";
 import UserLink from "./UserLink.jsx";
+import Footer from "./Footer.jsx";
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
@@ -152,6 +153,7 @@ export default function AppLayout() {
       const detail = event?.detail || {};
       const postId = detail.postId;
       if (!postId) return;
+      setPanel(null);
       setNotifPostId(postId);
       setNotifCommentId(detail.commentId || null);
     }
@@ -407,34 +409,77 @@ export default function AppLayout() {
       ) : null}
 
       {!mobileViewerOpen ? (
-        <FooterNav
-          homeActive={isHome && !panelOpen}
-          searchActive={
-            isDesktop ? panel === "search" : location.pathname === "/search"
-          }
-          exploreActive={location.pathname === "/explore" && !panelOpen}
-          profileActive={isProfile}
-          profileHref={user?._id ? `/profile/${user._id}` : "/"}
-          profileAvatar={user?.avatar}
-          onHome={() => {
-            setPanel(null);
-            navigate("/");
-          }}
-          onSearch={() => togglePanel("search")}
-          onExplore={() => {
-            setPanel(null);
-            navigate("/explore");
-          }}
-          onMessages={() => {}}
-          onNotifications={() => togglePanel("notifications")}
-          onCreate={() => {
-            if (isDesktop) {
-              setCreateOpen(true);
-            } else {
-              navigate("/create", { state: { from: location.pathname } });
+        <>
+          <FooterNav
+            homeActive={isHome && !panelOpen}
+            searchActive={
+              isDesktop ? panel === "search" : location.pathname === "/search"
             }
-          }}
-        />
+            exploreActive={location.pathname === "/explore" && !panelOpen}
+            profileActive={isProfile}
+            profileHref={user?._id ? `/profile/${user._id}` : "/"}
+            profileAvatar={user?.avatar}
+            onHome={() => {
+              setPanel(null);
+              navigate("/");
+            }}
+            onSearch={() => togglePanel("search")}
+            onExplore={() => {
+              setPanel(null);
+              navigate("/explore");
+            }}
+            onMessages={() => {}}
+            onNotifications={() => togglePanel("notifications")}
+            onCreate={() => {
+              if (isDesktop) {
+                setCreateOpen(true);
+              } else {
+                navigate("/create", { state: { from: location.pathname } });
+              }
+            }}
+          />
+          <Footer
+            className="hidden sm:block fixed bottom-0 left-0 right-0 z-40"
+            items={[
+              {
+                label: "Home",
+                onClick: () => {
+                  setPanel(null);
+                  navigate("/");
+                },
+              },
+              {
+                label: "Search",
+                onClick: () => togglePanel("search"),
+              },
+              {
+                label: "Explore",
+                onClick: () => {
+                  setPanel(null);
+                  navigate("/explore");
+                },
+              },
+              {
+                label: "Messages",
+                onClick: () => {},
+              },
+              {
+                label: "Notifications",
+                onClick: () => togglePanel("notifications"),
+              },
+              {
+                label: "Create",
+                onClick: () => {
+                  if (isDesktop) {
+                    setCreateOpen(true);
+                  } else {
+                    navigate("/create", { state: { from: location.pathname } });
+                  }
+                },
+              },
+            ]}
+          />
+        </>
       ) : null}
 
       {commentsPostId ? (
@@ -712,17 +757,14 @@ function FooterNav({
   onNotifications,
   onCreate,
 }) {
-  const linkClass =
-    "text-[12px] text-[#737373] hover:text-[#262626] transition";
   const iconClass = "h-6 w-6 filter brightness-0";
   const iconActive = "opacity-100";
   const iconInactive = "opacity-100";
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white h-[56px] sm:h-[158px] border-t border-[#DBDBDB] sm:border-t-0">
-      <div className="flex flex-col items-center px-4 sm:px-4 md:px-6 sm:pb-6">
-        <div className="flex h-[56px] w-full items-center justify-between sm:hidden">
-          <MobileIconButton onClick={onHome} label="Home">
+    <footer className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white h-[56px] sm:hidden">
+      <div className="flex h-[56px] w-full items-center justify-between px-4">
+        <MobileIconButton onClick={onHome} label="Home">
             <img
               src={homeActive ? "/images/Home_active.svg" : "/images/Home.svg"}
               className={[
@@ -775,33 +817,8 @@ function FooterNav({
               ].join(" ")}
             />
           </MobileIconButton>
-        </div>
-
-        <div className="hidden sm:flex h-[44px] w-full items-center justify-between md:w-auto md:gap-8">
-          <button onClick={onHome} className={linkClass}>
-            Home
-          </button>
-          <button onClick={onSearch} className={linkClass}>
-            Search
-          </button>
-          <button onClick={onExplore} className={linkClass}>
-            Explore
-          </button>
-          <button onClick={onMessages} className={linkClass}>
-            Messages
-          </button>
-          <button onClick={onCreate} className={linkClass}>
-            Create
-          </button>
-          <button onClick={onNotifications} className={linkClass}>
-            Notifications
-          </button>
-        </div>
-
-        <div className="hidden sm:block mt-[45px] text-center text-[12px] text-[#737373]">
-          © {new Date().getFullYear()} ICHgram
-        </div>
       </div>
     </footer>
   );
 }
+

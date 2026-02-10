@@ -1,4 +1,5 @@
 ﻿import React from "react";
+import Footer from "../components/Footer.jsx";
 
 export default function NotFound() {
   return (
@@ -79,21 +80,9 @@ export default function NotFound() {
         </main>
       </div>
 
-      <footer className="border-t border-[#EFEFEF] bg-white">
-        <div className="flex flex-col items-center px-4 md:px-6 pb-6">
-          <div className="flex h-[44px] items-center justify-center gap-8 text-[12px] text-[#737373]">
-            <span>Home</span>
-            <span>Search</span>
-            <span>Explore</span>
-            <span>Messages</span>
-            <span>Notifications</span>
-            <span>Create</span>
-          </div>
-          <div className="mt-[45px] text-center text-[12px] text-[#737373]">
-            В© {new Date().getFullYear()} ICHgram
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
+
+
