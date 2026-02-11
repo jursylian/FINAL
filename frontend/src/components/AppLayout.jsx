@@ -515,7 +515,10 @@ export default function AppLayout() {
               {comments.map((comment) => {
                 const { likesCount, likedByMe } = getCommentMeta(comment);
                 return (
-                  <div key={comment._id} className="flex items-start gap-3 py-2">
+                  <div
+                    key={comment._id}
+                    className="flex items-start gap-3 py-2"
+                  >
                     <UserLink
                       userId={comment.userId?._id || comment.userId}
                       className="h-8 w-8"
@@ -649,7 +652,7 @@ function LeftPanelFixed({ open, title, children }) {
         open ? "translate-x-0" : "-translate-x-full",
       ].join(" ")}
     >
-      <div className="flex h-[60px] items-center border-b border-[#DBDBDB] px-4">
+      <div className="flex h-[60px] items-center px-4">
         <div className="text-[14px] font-semibold text-[#262626]">{header}</div>
       </div>
       <div className="h-[calc(100vh-60px)] overflow-auto p-4">{children}</div>
@@ -777,60 +780,56 @@ function FooterNav({
     <footer className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white h-[56px] sm:hidden">
       <div className="flex h-[56px] w-full items-center justify-between px-4">
         <MobileIconButton onClick={onHome} label="Home">
-            <img
-              src={homeActive ? "/images/Home_active.svg" : "/images/Home.svg"}
-              className={[
-                iconClass,
-                homeActive ? iconActive : iconInactive,
-              ].join(" ")}
-            />
-          </MobileIconButton>
-          <MobileIconButton onClick={onSearch} label="Search">
-            <img
-              src={
-                searchActive
-                  ? "/images/Search_active.svg"
-                  : "/images/Search.svg"
-              }
-              className={[
-                iconClass,
-                searchActive ? iconActive : iconInactive,
-              ].join(" ")}
-            />
-          </MobileIconButton>
-          <MobileIconButton onClick={onExplore} label="Explore">
-            <img
-              src={
-                exploreActive
-                  ? "/images/Explore_active.svg"
-                  : "/images/Explore.svg"
-              }
-              className={[
-                iconClass,
-                exploreActive ? iconActive : iconInactive,
-              ].join(" ")}
-            />
-          </MobileIconButton>
-          <MobileIconButton onClick={onMessages} label="Messages">
-            <img
-              src="/images/Messages.svg"
-              className={[iconClass, iconInactive].join(" ")}
-            />
-          </MobileIconButton>
-          <MobileIconButton to={profileHref} label="Profile">
-            <img
-              src="/images/Profile.svg"
-              className={[
-                iconClass,
-                "rounded-full",
-                profileActive
-                  ? "border-2 border-[#0095F6]"
-                  : "border border-transparent",
-              ].join(" ")}
-            />
-          </MobileIconButton>
+          <img
+            src={homeActive ? "/images/Home_active.svg" : "/images/Home.svg"}
+            className={[iconClass, homeActive ? iconActive : iconInactive].join(
+              " ",
+            )}
+          />
+        </MobileIconButton>
+        <MobileIconButton onClick={onSearch} label="Search">
+          <img
+            src={
+              searchActive ? "/images/Search_active.svg" : "/images/Search.svg"
+            }
+            className={[
+              iconClass,
+              searchActive ? iconActive : iconInactive,
+            ].join(" ")}
+          />
+        </MobileIconButton>
+        <MobileIconButton onClick={onExplore} label="Explore">
+          <img
+            src={
+              exploreActive
+                ? "/images/Explore_active.svg"
+                : "/images/Explore.svg"
+            }
+            className={[
+              iconClass,
+              exploreActive ? iconActive : iconInactive,
+            ].join(" ")}
+          />
+        </MobileIconButton>
+        <MobileIconButton onClick={onMessages} label="Messages">
+          <img
+            src="/images/Messages.svg"
+            className={[iconClass, iconInactive].join(" ")}
+          />
+        </MobileIconButton>
+        <MobileIconButton to={profileHref} label="Profile">
+          <img
+            src="/images/Profile.svg"
+            className={[
+              iconClass,
+              "rounded-full",
+              profileActive
+                ? "border-2 border-[#0095F6]"
+                : "border border-transparent",
+            ].join(" ")}
+          />
+        </MobileIconButton>
       </div>
     </footer>
   );
 }
-
