@@ -108,8 +108,8 @@ export default function Feed() {
   }
 
   return (
-    <div className="w-full px-4 md:px-10 py-10 pb-[140px]">
-      <div className="mx-auto w-full max-w-[980px] md:translate-x-[-122px]">
+    <div className="w-full px-4 py-10 pb-[140px] lg:px-6 xl:px-8 min-[1440px]:px-10">
+      <div className="mx-auto w-full max-w-[840px] xl:max-w-[900px] min-[1440px]:max-w-[980px] min-[1440px]:translate-x-[-122px]">
         {loading && (
           <div className="text-[14px] text-[#737373]">Loading...</div>
         )}
@@ -120,7 +120,7 @@ export default function Feed() {
           </div>
         )}
 
-        <div className="mt-6 grid grid-cols-1 gap-x-[30px] gap-y-[22px] lg:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:gap-8 min-[1440px]:gap-x-[30px] min-[1440px]:gap-y-[22px]">
           {items.map((post) => (
             <FeedPost
               key={post._id}
@@ -133,8 +133,8 @@ export default function Feed() {
           ))}
         </div>
 
-        <div className="mt-24 flex flex-col items-center gap-3">
-          <img src="/images/Done.svg" alt="Done" className="h-25 w-25" />
+        <div className="mt-24 flex w-full flex-col items-center gap-3 text-center">
+          <img src="/images/Done.svg" alt="Done" className="h-21 w-21" />
           <div className="text-center">
             <div className="text-[14px] font-semibold text-[#262626]">
               You've seen all the updates

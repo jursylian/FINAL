@@ -381,7 +381,7 @@ export default function AppLayout() {
           {panel === "notifications" && <NotificationsList />}
         </LeftPanelFixed>
 
-        <main className="flex-1 pt-[56px] pb-[56px] sm:pt-0 sm:pb-[158px] md:ml-[78px]">
+        <main className="flex-1 min-w-0 pt-[56px] pb-[56px] sm:pt-0 sm:pb-[158px] md:ml-[78px]">
           <Outlet />
         </main>
       </div>
