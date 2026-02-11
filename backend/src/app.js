@@ -19,11 +19,11 @@ app.use(
       "http://localhost:5175",
     ],
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
@@ -36,11 +36,11 @@ app.use("/api/notifications", notificationsRoutes);
 app.use("/api/feed", feedRoutes);
 app.use("/api/comments", commentsRoutes);
 
-app.use((req, res) => {
+app.use((_req, res) => {
   res.status(404).json({ message: "Not found" });
 });
 
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
   if (err && err.type === "entity.parse.failed") {
     return res.status(400).json({ message: "Invalid JSON" });
   }

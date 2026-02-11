@@ -1,6 +1,6 @@
 import React from "react";
 
-const DEFAULT_AVATAR = "/images/ICH.svg";
+const DEFAULT_AVATAR = "/images/Default_pfp.svg";
 
 export default function UserAvatar({ user, size = 36, className = "" }) {
   const avatar = user?.avatar || DEFAULT_AVATAR;
@@ -8,7 +8,7 @@ export default function UserAvatar({ user, size = 36, className = "" }) {
   return (
     <div
       className={[
-        "inline-flex items-center justify-center overflow-hidden rounded-full bg-[#DBDBDB]",
+        "inline-flex items-center justify-center overflow-hidden rounded-full bg-[#FFFFFF]",
         className,
       ].join(" ")}
       style={{ width: size, height: size }}
