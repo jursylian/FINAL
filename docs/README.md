@@ -90,11 +90,13 @@ backend/src/
 ├── routes/         # Express роуты
 ├── middlewares/    # auth, upload
 └── utils/          # Переиспользуемые утилиты
+    ├── db.js
     ├── pagination.js
     ├── errorHandler.js
     ├── objectId.js
     ├── publicUser.js
-    └── followingIds.js
+    ├── followingIds.js
+    └── toDataUrl.js
 ```
 
 ### Архитектура Frontend
@@ -109,6 +111,8 @@ frontend/src/
     ├── constants.js
     ├── timeAgo.js
     ├── useIsDesktop.js
+    ├── useLikeToggle.js
+    ├── recentSearches.js
     └── authStyles.js
 ```
 

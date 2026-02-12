@@ -28,13 +28,15 @@ Frontend:
 
 ## Лайки и комментарии
 Backend:
-1. `POST /posts/:id/like` — toggle like.
-2. `POST /posts/:id/comments` — добавление комментария.
-3. `GET /posts/:id/comments` — список.
+1. `POST /posts/:id/like` — toggle like поста.
+2. `POST /comments/:commentId/like` — toggle like комментария.
+3. `POST /posts/:id/comments` — добавление комментария.
+4. `GET /posts/:id/comments` — список.
 
 Frontend:
-1. Кнопка лайка меняет состояние локально после ответа.
+1. Кнопка лайка меняет состояние локально после ответа (хук `useLikeToggle`).
 2. Комментарии подгружаются с пагинацией.
+3. Лайки комментариев хранятся как массив userId в модели Comment.
 
 ## Поиск и Explore
 Backend:
@@ -56,10 +58,14 @@ Frontend:
 
 ## Уведомления
 Backend:
-1. Создаются на like/comment/follow.
-2. `GET /notifications` + `PATCH /notifications/:id/read`.
+1. Создаются на like/comment/follow/like_comment.
+2. `GET /notifications` — список уведомлений.
+3. `GET /notifications/unread-count` — количество непрочитанных.
+4. `PATCH /notifications/:id/read` — пометить прочитанным.
+5. `DELETE /notifications/:id` — удалить уведомление.
 
 Frontend:
 1. Страница уведомлений сортируется по дате.
 2. Непрочитанные выделены визуально.
+3. Счётчик непрочитанных отображается в sidebar.
 

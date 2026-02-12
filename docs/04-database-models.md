@@ -11,10 +11,13 @@
 - `_id`: ObjectId
 - `email`: String, unique, required, lowercase, match (email regex)
 - `username`: String, unique, required, minlength 3, maxlength 30
-- `password`: String, required, minlength 8 (хранится в хеше)
+- `password`: String, required, minlength 8, select: false (хранится в хеше)
 - `name`: String
 - `bio`: String (maxlength 160)
+- `website`: String (maxlength 200, default "")
 - `avatar`: String (base64 data URL)
+- `resetPasswordTokenHash`: String, select: false (хеш токена сброса пароля)
+- `resetPasswordExpiresAt`: Date, select: false (срок действия токена сброса)
 - `createdAt`, `updatedAt`: Date (timestamps)
 
 Индексы:
@@ -60,11 +63,13 @@
 - `_id`: ObjectId
 - `userId`: ObjectId → User
 - `postId`: ObjectId → Post
-- `text`: String
+- `text`: String (required, maxlength 500)
+- `likes`: [ObjectId → User] (массив ID пользователей, лайкнувших комментарий, default [])
 - `createdAt`, `updatedAt`: Date
 
 Индексы:
 - `postId`
+- `userId`
 - `createdAt`
 
 ## Follow
@@ -87,7 +92,7 @@
 Поля:
 - `_id`: ObjectId
 - `userId`: ObjectId → User (получатель)
-- `type`: String enum: `like | comment | follow`
+- `type`: String enum: `like | comment | follow | like_comment`
 - `entityId`: ObjectId (id поста/комментария/пользователя)
 - `actorId`: ObjectId → User (инициатор события)
 - `read`: Boolean (default: false)

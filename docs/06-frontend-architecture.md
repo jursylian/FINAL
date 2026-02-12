@@ -18,11 +18,13 @@
 | `/` | Feed.jsx | Главная лента постов |
 | `/explore` | Explore.jsx | Explore (случайные посты) |
 | `/post/:id` | PostDetail.jsx | Детальная страница поста |
+| `/create` | PostCreate.jsx | Создание поста (alias) |
 | `/posts/new` | PostCreate.jsx | Создание поста (mobile) |
 | `/profile/:id` | Profile.jsx | Профиль пользователя |
 | `/profile/:id/edit` | ProfileEdit.jsx | Редактирование профиля |
 | `/profile/:id/followers` | Followers.jsx | Список подписчиков |
 | `/profile/:id/following` | Following.jsx | Список подписок |
+| `/search` | Search.jsx | Поиск (mobile) |
 | `/notifications` | Notifications.jsx | Уведомления (mobile) |
 | `*` | NotFound.jsx | 404 страница |
 
@@ -100,7 +102,7 @@ export async function request(path, options = {})
 ### constants.js
 ```javascript
 export const DEFAULT_LIMIT = 50;   // Лимит для списков
-export const EXPLORE_LIMIT = 30;   // Лимит для explore
+export const EXPLORE_LIMIT = 10;   // Лимит для explore
 ```
 
 ### timeAgo.js
@@ -108,6 +110,18 @@ export const EXPLORE_LIMIT = 30;   // Лимит для explore
 export default function timeAgo(date)
 // Возвращает: "just now", "5 minutes ago", "2 hours ago", "3 days ago", etc.
 ```
+
+### recentSearches.js
+Управление недавними поисками в localStorage:
+- `getRecent()` — получить список последних поисков
+- `addRecent(item, limit)` — добавить запись (по умолчанию до 15)
+- `removeRecent(userId)` — удалить запись
+- `clearRecent()` — очистить все
+
+### useLikeToggle.js
+Хук и утилита для лайков постов:
+- `toggleLike(postId)` — одиночный toggle-запрос
+- `useLikeToggle(postId, { onUpdate, onError })` — хук с состоянием загрузки
 
 ### authStyles.js
 Общие стили для форм авторизации:
@@ -128,9 +142,19 @@ export default function timeAgo(date)
 - **PostCreateModal** — модальное окно создания/редактирования поста
 - **PostCreateContent** — форма создания/редактирования поста
 
+### Поиск
+- **SearchPanel** — панель поиска с debounce-запросами и недавними поисками
+
 ### Пользователи
 - **UserAvatar** — аватар с fallback на инициалы
+- **UserLink** — ссылка на профиль пользователя
 - **UserList** — переиспользуемый список пользователей (followers/following)
+
+### Формы
+- **FormField** — переиспользуемая обёртка для полей форм
+
+### Общие
+- **Footer** — подвал страницы
 
 ### Модальные окна
 - **ModalShell** — обёртка для модальных окон с preset'ами (post, create, menu)

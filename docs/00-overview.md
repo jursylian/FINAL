@@ -27,7 +27,6 @@
 | React Router DOM | 6.x | Роутинг |
 | Tailwind CSS | 4.x | Стилизация |
 | React Hook Form | — | Формы |
-| Lucide React | — | Иконки |
 
 ## Архитектура
 
@@ -118,8 +117,12 @@ frontend/src/
 │   ├── PostCreateModal.jsx # Модальное окно создания
 │   ├── PostCreateContent.jsx
 │   ├── ModalShell.jsx      # Обёртка модальных окон
+│   ├── SearchPanel.jsx     # Панель поиска
 │   ├── UserAvatar.jsx      # Аватар пользователя
+│   ├── UserLink.jsx        # Ссылка на профиль
 │   ├── UserList.jsx        # Список пользователей
+│   ├── FormField.jsx       # Обёртка полей форм
+│   ├── Footer.jsx          # Подвал
 │   └── NotificationsList.jsx
 ├── pages/                  # Страницы
 │   ├── Feed.jsx            # Главная лента
@@ -141,6 +144,8 @@ frontend/src/
 │   ├── constants.js        # DEFAULT_LIMIT, EXPLORE_LIMIT
 │   ├── timeAgo.js          # Относительное время
 │   ├── useIsDesktop.js     # Хук для responsive
+│   ├── useLikeToggle.js    # Хук для лайков постов
+│   ├── recentSearches.js   # Недавние поиски (localStorage)
 │   └── authStyles.js       # Общие стили auth-форм
 ├── App.jsx                 # Роутинг
 ├── main.jsx                # Точка входа

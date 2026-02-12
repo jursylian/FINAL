@@ -104,7 +104,7 @@ Headers:
 - `Authorization`
 
 Body (JSON):
-- `name`, `bio`, `username`, `email` (опционально)
+- `name`, `bio`, `website`, `username`, `email` (опционально)
 
 Ответ 200:
 - `user` (без `password`)
@@ -240,6 +240,44 @@ Query:
 Ответ 200:
 - `items`, `page`, `limit`, `total`
 
+## Feed
+
+### GET `/feed/home`
+Описание: лента постов от подписок (отдельный роут).
+
+Headers:
+- `Authorization`
+
+Query:
+- `page`, `limit` (опционально)
+
+Ответ 200:
+- `items`, `page`, `limit`, `total`
+
+### GET `/feed/explore`
+Описание: лента explore-постов (отдельный роут).
+
+Headers:
+- `Authorization` (опционально, через optionalAuth)
+
+Query:
+- `page`, `limit` (опционально)
+
+Ответ 200:
+- `items`, `page`, `limit`, `total`
+
+## Comment Likes
+
+### POST `/comments/:commentId/like`
+Описание: toggle like на комментарий.
+
+Headers:
+- `Authorization`
+
+Ответ 200:
+- `liked` (boolean)
+- `likesCount` (number)
+
 ## Search
 
 ### GET `/search/users`
@@ -305,6 +343,15 @@ Query:
 Ответ 200:
 - `items`
 
+### GET `/notifications/unread-count`
+Описание: количество непрочитанных уведомлений.
+
+Headers:
+- `Authorization`
+
+Ответ 200:
+- `count` (number)
+
 ### PATCH `/notifications/:id/read`
 Описание: пометить уведомление как прочитанное.
 
@@ -317,4 +364,24 @@ Headers:
 Ошибки:
 - 401: нет токена
 - 404: не найдено
+
+### DELETE `/notifications/:id`
+Описание: удалить уведомление.
+
+Headers:
+- `Authorization`
+
+Ответ 200/204: удалено
+
+Ошибки:
+- 401: нет токена
+- 404: не найдено
+
+## Health
+
+### GET `/api/health`
+Описание: проверка работоспособности сервера.
+
+Ответ 200:
+- `{ "status": "ok" }`
 

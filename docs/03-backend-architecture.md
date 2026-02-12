@@ -31,10 +31,11 @@ backend/
 │   │   ├── authRoutes.js
 │   │   ├── usersRoutes.js
 │   │   ├── postsRoutes.js
+│   │   ├── feedRoutes.js
 │   │   ├── searchRoutes.js
 │   │   ├── exploreRoutes.js
-│   │   ├── feedRoutes.js
-│   │   └── notificationsRoutes.js
+│   │   ├── notificationsRoutes.js
+│   │   └── commentsRoutes.js
 │   ├── middlewares/        # Middleware
 │   │   ├── auth.js         # JWT проверка (обязательная)
 │   │   ├── optionalAuth.js # JWT проверка (опциональная)
@@ -45,7 +46,8 @@ backend/
 │       ├── errorHandler.js # Унифицированная обработка ошибок
 │       ├── objectId.js     # Конвертация в ObjectId
 │       ├── publicUser.js   # Удаление пароля из ответа
-│       └── followingIds.js # Получение списка подписок
+│       ├── followingIds.js # Получение списка подписок
+│       └── toDataUrl.js    # Конвертация файла в Base64 Data URL
 ├── .env                    # Переменные окружения
 └── package.json
 ```
@@ -67,6 +69,7 @@ backend/
 | `objectId.js` | `toObjectId(value)` | Безопасная конвертация в ObjectId |
 | `publicUser.js` | `toPublicUser(userDoc)` | Удаляет password и reset-токены |
 | `followingIds.js` | `getFollowingIds(userId)` | Возвращает массив ID подписок |
+| `toDataUrl.js` | `toDataUrl(file)` | Конвертирует multer-файл в Base64 Data URL |
 
 ## Обработка ошибок
 
@@ -151,7 +154,7 @@ const dataUrl = `data:${mimeType};base64,${base64}`;
 
 ```javascript
 cors({
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
   credentials: true,
 })
 ```
