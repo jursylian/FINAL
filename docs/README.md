@@ -39,6 +39,7 @@
 | [08-testing-checklist.md](08-testing-checklist.md) | Ручные тест-кейсы |
 | [09-optional-realtime-chat.md](09-optional-realtime-chat.md) | Опциональный чат на Socket.io |
 | [info.md](info.md) | Полное описание проекта |
+| **[detailed/](detailed/README.md)** | **Детальное описание реализации (схемы, потоки, стек)** |
 
 ## Технологический стек
 
