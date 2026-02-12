@@ -5,8 +5,7 @@ import https from "https";
 import User from "../src/models/User.js";
 import Post from "../src/models/Post.js";
 
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://localhost:27017/ichgramm";
+const MONGO_URI = process.env.MONGO_URI;
 
 const USERNAME = "itcareerhub";
 const CAPTION = "IT Career Hub";

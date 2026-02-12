@@ -1,5 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 
 import { request } from "../lib/apiClient.js";
 import { DEFAULT_LIMIT } from "../lib/constants.js";
@@ -120,7 +126,10 @@ export default function Profile() {
       const created = event.detail;
       if (!created?._id) return;
       const authorId =
-        created.authorId?._id || created.authorId || created.userId?._id || created.userId;
+        created.authorId?._id ||
+        created.authorId ||
+        created.userId?._id ||
+        created.userId;
       if (!authorId || !profile?._id) return;
       if (String(authorId) !== String(profile._id)) return;
       setPosts((prev) => {
@@ -193,7 +202,7 @@ export default function Profile() {
           <div className="flex shrink-0 items-start justify-center w-full md:w-[290px]">
             <div className="rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[3px] md:p-1">
               <div className="rounded-full bg-white p-[2px] md:p-[3px]">
-                <div className="h-[80px] w-[80px] md:h-[150px] md:w-[150px] overflow-hidden rounded-full bg-[#FAFAFA]">
+                <div className="h-[80px] w-[80px] md:h-[150px] md:w-[150px] overflow-hidden rounded-full">
                   {profile.avatar ? (
                     <img
                       src={profile.avatar}
@@ -201,7 +210,11 @@ export default function Profile() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <img src="/images/ICH.svg" className="h-full w-full object-cover" />
+                    <img
+                      src="/images/Default_pfp.svg"
+                      alt={profile.username}
+                      className="h-full w-full object-cover"
+                    />
                   )}
                 </div>
               </div>
@@ -251,11 +264,19 @@ export default function Profile() {
               <div>
                 <span className="font-semibold">{postsCount}</span> posts
               </div>
-              <Link to={`/profile/${profile._id}/followers`} className="hover:opacity-60 transition">
-                <span className="font-semibold">{stats.followers}</span> followers
+              <Link
+                to={`/profile/${profile._id}/followers`}
+                className="hover:opacity-60 transition"
+              >
+                <span className="font-semibold">{stats.followers}</span>{" "}
+                followers
               </Link>
-              <Link to={`/profile/${profile._id}/following`} className="hover:opacity-60 transition">
-                <span className="font-semibold">{stats.following}</span> following
+              <Link
+                to={`/profile/${profile._id}/following`}
+                className="hover:opacity-60 transition"
+              >
+                <span className="font-semibold">{stats.following}</span>{" "}
+                following
               </Link>
             </div>
 
@@ -277,7 +298,16 @@ export default function Profile() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-[14px] font-semibold text-[#00376B] hover:underline"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 rotate-45">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4 shrink-0 rotate-45"
+                  >
                     <rect x="8" y="2" width="8" height="20" rx="4" />
                     <line x1="12" y1="8" x2="12" y2="16" />
                   </svg>
@@ -302,7 +332,12 @@ export default function Profile() {
               </div>
             </div>
           )}
-          <div className={["grid grid-cols-3 gap-1", modalPostId ? "opacity-60" : ""].join(" ")}>
+          <div
+            className={[
+              "grid grid-cols-3 gap-1",
+              modalPostId ? "opacity-60" : "",
+            ].join(" ")}
+          >
             {posts.map((post) => (
               <button
                 key={post._id}
@@ -356,7 +391,9 @@ export default function Profile() {
           onClose={() => setEditPost(null)}
           onUpdated={(updated) => {
             setPosts((prev) =>
-              prev.map((p) => (p._id === updated._id ? { ...p, ...updated } : p))
+              prev.map((p) =>
+                p._id === updated._id ? { ...p, ...updated } : p,
+              ),
             );
             setEditPost(null);
           }}
@@ -369,7 +406,10 @@ export default function Profile() {
           onCreated={(created) => {
             if (!created?._id) return;
             const authorId =
-              created.authorId?._id || created.authorId || created.userId?._id || created.userId;
+              created.authorId?._id ||
+              created.authorId ||
+              created.userId?._id ||
+              created.userId;
             if (!authorId || !profile?._id) return;
             if (String(authorId) !== String(profile._id)) return;
             setPosts((prev) => {

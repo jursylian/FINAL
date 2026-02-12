@@ -1,10 +1,11 @@
-﻿import mongoose from "mongoose";
+﻿import "dotenv/config";
+import mongoose from "mongoose";
 import https from "https";
 
 import User from "../src/models/User.js";
 import Post from "../src/models/Post.js";
 
-const MONGO_URI = "mongodb://localhost:27017/posts_db";
+const MONGO_URI = process.env.MONGO_URI;
 const CAPTION = "From quiet roads to busy cities every moment matters";
 
 const FILE_IDS = [
@@ -70,7 +71,7 @@ async function downloadDriveFile(fileId) {
   if (confirmMatch) {
     const confirm = confirmMatch[1];
     return downloadUrl(
-      `https://drive.google.com/uc?export=download&confirm=${confirm}&id=${fileId}`
+      `https://drive.google.com/uc?export=download&confirm=${confirm}&id=${fileId}`,
     );
   }
 

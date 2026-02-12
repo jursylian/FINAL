@@ -1,7 +1,8 @@
-﻿import mongoose from "mongoose";
+﻿import "dotenv/config";
+import mongoose from "mongoose";
 import User from "../src/models/User.js";
 
-const MONGO_URI = "mongodb://localhost:27017/posts_db";
+const MONGO_URI = process.env.MONGO_URI;
 const USER_ID = "69778012165947a2fa2c1719";
 const USERNAME = "ichgramm";
 const NAME = "ichgramm user";
@@ -19,7 +20,11 @@ async function main() {
   await user.save();
 
   console.log("Updated user:");
-  console.log({ _id: String(user._id), username: user.username, name: user.name });
+  console.log({
+    _id: String(user._id),
+    username: user.username,
+    name: user.name,
+  });
 
   await mongoose.disconnect();
 }

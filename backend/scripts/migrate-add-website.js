@@ -1,8 +1,8 @@
+import "dotenv/config";
 import mongoose from "mongoose";
 import User from "../src/models/User.js";
 
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://localhost:27017/ichgramm";
+const MONGO_URI = process.env.MONGO_URI;
 
 async function main() {
   await mongoose.connect(MONGO_URI);
