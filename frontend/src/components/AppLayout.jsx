@@ -646,16 +646,16 @@ function LeftPanelFixed({ open, title, children }) {
     <div
       className={[
         "hidden md:block fixed top-0 left-[245px] z-40 h-[calc(100vh-158px)] w-[397px]",
-        "bg-white overflow-hidden",
+        "bg-white overflow-hidden flex flex-col",
         "rounded-tr-[16px] rounded-br-[16px]",
         "transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-transform",
         open ? "translate-x-0" : "-translate-x-full",
       ].join(" ")}
     >
-      <div className="flex h-[60px] items-center px-4">
+      <div className="flex h-[60px] shrink-0 items-center px-4">
         <div className="text-[14px] font-semibold text-[#262626]">{header}</div>
       </div>
-      <div className="h-[calc(100vh-60px)] overflow-auto p-4">{children}</div>
+      <div className="flex-1 min-h-0 overflow-auto p-4">{children}</div>
     </div>
   );
 }
